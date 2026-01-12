@@ -362,8 +362,7 @@ export default function PriXplainer() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-          "x-user-email": email,
+          "x-user-email": user.email, // IMPORTANT
         },
         body: JSON.stringify({
           text,
@@ -371,19 +370,30 @@ export default function PriXplainer() {
           top_k: 5,
         }),
       });
-  
+      
+      // 🚨 HANDLE ERRORS FIRST
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Analyze failed");
+        const message = await res.text(); // NOT json()
+        throw new Error(message);
       }
+    
+  
+      // if (!res.ok) {
+      //   const err = await res.json();
+      //   throw new Error(err.detail || "Analyze failed");
+      // }
   
       const data = await res.json();
+      
       setRows(data.rows || []);
     } catch (err: any) {
-      alert(err.message);
-    } finally {
-      setLoading(false);
-    }
+      toast({
+        title: "PriXplainer",
+        description: err.message.includes("subscribe")
+          ? "Free limit reached. Please subscribe to the Pro plan."
+          : err.message,
+        variant: "destructive",
+      });
   }
 
   function clearFilters() {
