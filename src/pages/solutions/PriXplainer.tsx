@@ -333,36 +333,30 @@ export default function PriXplainer() {
   const navigate = useNavigate();
 
   async function analyze() {
-    const { data } = await supabase.auth.getSession();
-    const session = data.session;
-
-    if (!session) throw new Error("Please log in first");
-
-    const token = session.access_token;
-    const email = session.user.email ?? "";
-
-
     if (!text.trim()) return;
   
     setLoading(true);
+  
     try {
       const sessionRes = await supabase.auth.getSession();
       const session = sessionRes.data.session;
   
       if (!session) {
-        alert("Please log in to use PriXplainer");
-        setLoading(false);
+        toast({
+          title: "Login required",
+          description: "Please log in to use PriXplainer",
+          variant: "destructive",
+        });
         return;
       }
   
-      const token = session.access_token;
       const email = session.user.email;
   
       const res = await fetch("/api/prixplainer/annotate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-user-email": user.email, // IMPORTANT
+          "x-user-email": email ?? "",
         },
         body: JSON.stringify({
           text,
@@ -370,30 +364,26 @@ export default function PriXplainer() {
           top_k: 5,
         }),
       });
-      
-      // 🚨 HANDLE ERRORS FIRST
+  
+      // 🚨 handle non-JSON responses
       if (!res.ok) {
-        const message = await res.text(); // NOT json()
+        const message = await res.text();
         throw new Error(message);
       }
-    
-  
-      // if (!res.ok) {
-      //   const err = await res.json();
-      //   throw new Error(err.detail || "Analyze failed");
-      // }
   
       const data = await res.json();
-      
       setRows(data.rows || []);
     } catch (err: any) {
       toast({
         title: "PriXplainer",
-        description: err.message.includes("subscribe")
+        description: err.message?.includes("subscribe")
           ? "Free limit reached. Please subscribe to the Pro plan."
-          : err.message,
+          : err.message || "Analyze failed",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
+    }
   }
 
   function clearFilters() {
