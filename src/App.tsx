@@ -11,12 +11,14 @@ import Solutions from "./pages/Solutions";
 import PriXplainer from "./pages/solutions/PriXplainer";
 import FoundrFATE from "./pages/solutions/FoundrFATE";
 import TrustEarthy from "./pages/solutions/TrustEarthy";
+import Extension from "./pages/Extension";
 import Privacy from "./pages/Privacy";
 import Career from "./pages/Career";
 import Contact from "./pages/Contact";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
+import ChromePrivacy from "./pages/chrome-privacy"; // adjust path to match your project
 
 const queryClient = new QueryClient();
 
@@ -35,11 +37,13 @@ const App = () => (
               <Route path="/solutions/prixplainer" element={<PriXplainer />} />
               <Route path="/solutions/foundrfate" element={<FoundrFATE />} />
               <Route path="/solutions/trusteartthy" element={<TrustEarthy />} />
+              <Route path="/extension" element={<Extension />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/career" element={<Career />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
+              <Route path="/chrome-privacy" element={<ChromePrivacy />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
