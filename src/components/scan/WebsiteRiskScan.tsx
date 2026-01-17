@@ -3,6 +3,7 @@ import { Shield } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 import AnimatedSection from "@/components/AnimatedSection";
 import ScanInput from "./ScanInput";
 import ScanProgress from "./ScanProgress";
@@ -10,9 +11,38 @@ import ScanResults from "./ScanResults";
 import type { ScanResult, ScanStatus } from "@/types/scan";
 
 export default function WebsiteRiskScan() {
+  const { user } = useAuth();
   const [status, setStatus] = useState<ScanStatus>('idle');
   const [progressStep, setProgressStep] = useState(0);
   const [result, setResult] = useState<ScanResult | null>(null);
+
+  const saveScanToHistory = async (scanResult: ScanResult) => {
+    if (!user) return;
+    
+    try {
+      // Using type assertion since scan_history table was just created
+      const { error } = await supabase.from('scan_history' as 'profiles').insert({
+        user_id: user.id,
+        url: scanResult.domain,
+        risk_score: scanResult.score,
+        risk_level: scanResult.risk_level,
+        summary: scanResult.summary,
+        findings: {
+          immediate_risks: scanResult.immediate_risks,
+          dark_patterns: scanResult.dark_patterns,
+          digital_footprint: scanResult.digital_footprint,
+          actions: scanResult.actions,
+          confidence: scanResult.confidence
+        }
+      } as never);
+
+      if (error) {
+        console.error('Failed to save scan history:', error);
+      }
+    } catch (err) {
+      console.error('Error saving scan history:', err);
+    }
+  };
 
   const handleScan = async (url: string) => {
     setStatus('scanning');
@@ -47,8 +77,12 @@ export default function WebsiteRiskScan() {
       }
 
       if (data && data.domain) {
-        setResult(data as ScanResult);
+        const scanResult = data as ScanResult;
+        setResult(scanResult);
         setStatus('complete');
+        
+        // Save to history for logged-in users
+        await saveScanToHistory(scanResult);
       } else {
         toast.error("We couldn't scan this site. Try again or use demo scan.");
         setStatus('error');

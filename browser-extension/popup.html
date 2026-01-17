@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PriXplainer</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 400px;
+      min-height: 400px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #0f0f1a 100%);
+      color: #ffffff;
+      padding: 20px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(74, 222, 128, 0.2);
+    }
+
+    .logo {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #4ade80, #22c55e);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .title {
+      font-size: 18px;
+      font-weight: 600;
+      background: linear-gradient(90deg, #4ade80, #22c55e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .domain-display {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(74, 222, 128, 0.3);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .domain-label {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 4px;
+    }
+
+    .domain-name {
+      font-size: 16px;
+      font-weight: 500;
+      color: #4ade80;
+      word-break: break-all;
+    }
+
+    .scan-btn {
+      width: 100%;
+      padding: 14px 24px;
+      background: linear-gradient(135deg, #4ade80, #22c55e);
+      border: none;
+      border-radius: 12px;
+      color: #0a0a0f;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .scan-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(74, 222, 128, 0.4);
+    }
+
+    .scan-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .scanning {
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 3px solid rgba(74, 222, 128, 0.2);
+      border-top-color: #4ade80;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .scanning-text {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 14px;
+    }
+
+    .results {
+      display: none;
+      max-height: 550px;
+      overflow-y: auto;
+    }
+
+    .results.visible {
+      display: block;
+    }
+
+    .results::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .results::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 3px;
+    }
+
+    .results::-webkit-scrollbar-thumb {
+      background: rgba(74, 222, 128, 0.3);
+      border-radius: 3px;
+    }
+
+    .results::-webkit-scrollbar-thumb:hover {
+      background: rgba(74, 222, 128, 0.5);
+    }
+
+    /* Top Summary Card */
+    .score-card {
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+      border: 1px solid rgba(74, 222, 128, 0.2);
+    }
+
+    .score-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .domain-info {
+      flex: 1;
+    }
+
+    .domain-info .label {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.5);
+      margin-bottom: 2px;
+    }
+
+    .domain-info .name {
+      font-size: 18px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .score-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .trust-score {
+      text-align: center;
+    }
+
+    .trust-score .label {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.5);
+      margin-bottom: 2px;
+    }
+
+    .score-value {
+      font-size: 36px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .score-value span {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .score-value.high { color: #4ade80; }
+    .score-value.medium { color: #fbbf24; }
+    .score-value.low { color: #ef4444; }
+
+    .risk-badge {
+      display: inline-block;
+      padding: 8px 16px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .risk-badge.low {
+      background: rgba(74, 222, 128, 0.2);
+      color: #4ade80;
+      border: 1px solid rgba(74, 222, 128, 0.4);
+    }
+
+    .risk-badge.medium {
+      background: rgba(251, 191, 36, 0.2);
+      color: #fbbf24;
+      border: 1px solid rgba(251, 191, 36, 0.4);
+    }
+
+    .risk-badge.high {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+
+    .summary {
+      font-size: 14px;
+      line-height: 1.6;
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    /* Section Cards */
+    .section-card {
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title .icon {
+      font-size: 16px;
+    }
+
+    .section-title.yellow .icon { color: #fbbf24; }
+    .section-title.green .icon { color: #4ade80; }
+    .section-title.purple .icon { color: #a78bfa; }
+
+    /* Risk List */
+    .risk-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .risk-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 12px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 10px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .risk-icon {
+      flex-shrink: 0;
+      font-size: 14px;
+      margin-top: 2px;
+    }
+
+    /* Dark Patterns */
+    .dark-pattern-item {
+      padding: 12px;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+
+    .dark-pattern-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .dark-pattern-type {
+      font-weight: 600;
+      color: #ef4444;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    .dark-pattern-evidence {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+      line-height: 1.4;
+    }
+
+    .no-dark-patterns {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      background: rgba(74, 222, 128, 0.1);
+      border: 1px solid rgba(74, 222, 128, 0.2);
+      border-radius: 10px;
+      color: #4ade80;
+      font-size: 13px;
+    }
+
+    /* Digital Footprint Chips */
+    .chips-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .chip {
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 500;
+      background: rgba(74, 222, 128, 0.15);
+      color: #4ade80;
+      border: 1px solid rgba(74, 222, 128, 0.3);
+    }
+
+    /* Footprint Details */
+    .footprint-detail {
+      padding: 10px 12px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+
+    .footprint-detail:last-of-type {
+      margin-bottom: 0;
+    }
+
+    .footprint-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 3px;
+    }
+
+    .footprint-text {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+      line-height: 1.4;
+    }
+
+    .footprint-note {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+      margin-top: 12px;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.5);
+      font-style: italic;
+      line-height: 1.4;
+    }
+
+    .footprint-note .icon {
+      flex-shrink: 0;
+    }
+
+    /* Actions Grid */
+    .actions-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .action-card {
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      transition: border-color 0.2s;
+    }
+
+    .action-card:hover {
+      border-color: rgba(74, 222, 128, 0.3);
+    }
+
+    .action-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    .action-text {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.6);
+      line-height: 1.4;
+    }
+
+    /* Expandable Section */
+    .expandable {
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+
+    .expandable-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .expandable-header:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .expandable-header .title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #fff;
+    }
+
+    .expandable-header .chevron {
+      transition: transform 0.2s;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .expandable.open .chevron {
+      transform: rotate(180deg);
+    }
+
+    .expandable-content {
+      padding: 0 16px 16px;
+      display: none;
+    }
+
+    .expandable.open .expandable-content {
+      display: block;
+    }
+
+    .confidence-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 10px;
+    }
+
+    .confidence-badge.high {
+      background: rgba(74, 222, 128, 0.2);
+      color: #4ade80;
+    }
+
+    .confidence-badge.medium {
+      background: rgba(251, 191, 36, 0.2);
+      color: #fbbf24;
+    }
+
+    .confidence-badge.low {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+    }
+
+    .confidence-text {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.5);
+      line-height: 1.5;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .action-btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .action-btn.primary {
+      background: linear-gradient(135deg, #4ade80, #22c55e);
+      border: none;
+      color: #0a0a0f;
+    }
+
+    .action-btn.secondary {
+      background: transparent;
+      border: 1px solid rgba(74, 222, 128, 0.4);
+      color: #4ade80;
+    }
+
+    .action-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .action-btn.primary:hover {
+      box-shadow: 0 4px 15px rgba(74, 222, 128, 0.3);
+    }
+
+    .error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      color: #ef4444;
+    }
+
+    .error-icon {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .footer {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      text-align: center;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    .footer a {
+      color: #4ade80;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">P</div>
+    <div class="title">PriXplainer</div>
+  </div>
+
+  <div id="idle-state">
+    <div class="domain-display">
+      <div class="domain-label">Current Website</div>
+      <div class="domain-name" id="current-domain">Loading...</div>
+    </div>
+    <button class="scan-btn" id="scan-btn">
+      <span>🔍</span>
+      <span>Scan for Privacy Risks</span>
+    </button>
+  </div>
+
+  <div id="scanning-state" class="scanning" style="display: none;">
+    <div class="spinner"></div>
+    <div class="scanning-text" id="scanning-text">Analyzing privacy practices...</div>
+  </div>
+
+  <div id="error-state" class="error" style="display: none;">
+    <div class="error-icon">⚠️</div>
+    <div id="error-message">An error occurred</div>
+    <button class="scan-btn" id="retry-btn" style="margin-top: 16px;">Try Again</button>
+  </div>
+
+  <div id="results-state" class="results">
+    <!-- Top Summary Card -->
+    <div class="score-card">
+      <div class="score-header">
+        <div class="domain-info">
+          <div class="label">Results for</div>
+          <div class="name" id="result-domain"></div>
+        </div>
+        <div class="score-area">
+          <div class="trust-score">
+            <div class="label">Trust Score</div>
+            <div class="score-value" id="trust-score">--<span>/100</span></div>
+          </div>
+          <div class="risk-badge" id="risk-badge">--</div>
+        </div>
+      </div>
+      <div class="summary" id="summary"></div>
+    </div>
+
+    <!-- Immediate Risks -->
+    <div class="section-card" id="risks-section">
+      <div class="section-title yellow">
+        <span class="icon">⚠️</span>
+        <span>Immediate Risks</span>
+      </div>
+      <div class="risk-list" id="risks-list"></div>
+    </div>
+
+    <!-- Dark Patterns -->
+    <div class="section-card" id="dark-patterns-section">
+      <div class="section-title">
+        <span class="icon">👁️</span>
+        <span>Dark Patterns</span>
+      </div>
+      <div id="dark-patterns-list"></div>
+    </div>
+
+    <!-- Digital Footprint -->
+    <div class="section-card" id="footprint-section">
+      <div class="section-title purple">
+        <span class="icon">🔏</span>
+        <span>Digital Footprint</span>
+      </div>
+      <div class="chips-container" id="footprint-chips"></div>
+      <div id="footprint-details"></div>
+      <div class="footprint-note" id="footprint-note">
+        <span class="icon">ℹ️</span>
+        <span id="footprint-note-text"></span>
+      </div>
+    </div>
+
+    <!-- What You Can Do -->
+    <div class="section-card" id="actions-section">
+      <div class="section-title green">
+        <span class="icon">⚡</span>
+        <span>What You Can Do</span>
+      </div>
+      <div class="actions-grid" id="actions-list"></div>
+    </div>
+
+    <!-- How We Decided -->
+    <div class="expandable" id="confidence-section">
+      <div class="expandable-header" onclick="toggleExpandable()">
+        <div class="title">
+          <span>🛡️</span>
+          <span>See how we decided this</span>
+        </div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="expandable-content">
+        <div class="confidence-label" style="font-size: 11px; color: rgba(255,255,255,0.5); margin-bottom: 6px;">Confidence Rating</div>
+        <div class="confidence-badge" id="confidence-badge">--</div>
+        <p class="confidence-text">
+          This analysis is based on visible page signals including meta tags, scripts, consent patterns, 
+          and common tracking indicators. For a complete picture, always review the site's full privacy policy.
+        </p>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <button class="action-btn secondary" id="scan-another-btn">Scan Again</button>
+      <button class="action-btn secondary" id="copy-btn">📋 Copy</button>
+      <button class="action-btn primary" id="pdf-btn">📄 PDF</button>
+    </div>
+  </div>
+
+  <div class="footer">
+    Powered by <a href="https://consenterra.lovable.app" target="_blank">ConsenTerra</a>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
