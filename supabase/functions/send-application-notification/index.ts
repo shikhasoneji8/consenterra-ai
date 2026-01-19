@@ -1,25 +1,6 @@
-// Follow this setup guide to integrate the Deno language server with your editor:
-// https://deno.land/manual/getting_started/setup_your_environment
-// This enables autocomplete, go to definition, etc.
-
-// Setup type definitions for built-in Supabase Runtime APIs
-import "jsr:@supabase/functions-js/edge-runtime.d.ts"
-
-console.log("Hello from Functions!")
-
-Deno.serve(async (req) => {
-  const { name } = await req.json()
-  const data = {
-    message: `Hello ${name}!`,
-  }
-
-  return new Response(
-    JSON.stringify(data),
-    { headers: { "Content-Type": "application/json" } },
-  )
-})
-
 // supabase/functions/send-application-notification/index.ts
+import { Resend } from "npm:resend@4.0.0";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "https://www.consenterra.ai",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -27,13 +8,67 @@ const corsHeaders = {
 };
 
 Deno.serve(async (req) => {
-  // ✅ Preflight
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { status: 200, headers: corsHeaders });
+  // Preflight
+  if (req.method === "OPTIONS") return new Response("ok", { status: 200, headers: corsHeaders });
+
+  if (req.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   try {
-    // your logic...
+    const body = await req.json();
+
+    const {
+      fullName,
+      email,
+      phone,
+      role,
+      linkedinUrl,
+      portfolioUrl,
+      resumeUrl,
+      coverLetter,
+    } = body ?? {};
+
+    if (!fullName || !email || !role) {
+      return new Response(JSON.stringify({ error: "Missing required fields" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const resendKey = Deno.env.get("RESEND_API_KEY");
+    if (!resendKey) {
+      return new Response(JSON.stringify({ error: "Missing RESEND_API_KEY secret" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const resend = new Resend(resendKey);
+
+    const to = ["shikha@consenterra.ai", "sameer@consenterra.ai"];
+    const from = Deno.env.get("RESEND_FROM_EMAIL") || "ConsenTerra Careers <careers@consenterra.ai>";
+    const subject = `New Application: ${role} — ${fullName}`;
+
+    const html = `
+      <h2>New Job Application</h2>
+      <p><b>Name:</b> ${fullName}</p>
+      <p><b>Email:</b> ${email}</p>
+      <p><b>Phone:</b> ${phone || "-"}</p>
+      <p><b>Role:</b> ${role}</p>
+      <p><b>LinkedIn:</b> ${linkedinUrl || "-"}</p>
+      <p><b>Portfolio/GitHub:</b> ${portfolioUrl || "-"}</p>
+      <p><b>Resume:</b> ${resumeUrl || "-"}</p>
+      <p><b>Why ConsenTerra:</b><br/>${String(coverLetter || "-").replace(/\n/g, "<br/>")}</p>
+    `;
+
+    const result = await resend.emails.send({ from, to, subject, html });
+    // @ts-ignore
+    if (result?.error) throw result.error;
+
     return new Response(JSON.stringify({ ok: true }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
