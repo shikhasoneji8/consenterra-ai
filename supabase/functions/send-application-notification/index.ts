@@ -9,7 +9,9 @@ const corsHeaders = {
 
 Deno.serve(async (req) => {
   // Preflight
-  if (req.method === "OPTIONS") return new Response("ok", { status: 200, headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { status: 200, headers: corsHeaders });
+  }
 
   if (req.method !== "POST") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), {
