@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Briefcase, MapPin, Clock, CheckCircle, Code, Send, Loader2 } from "lucide-react";
+import { Briefcase, MapPin, Clock, CheckCircle, Code, Send, Loader2, Upload, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -57,8 +57,10 @@ const benefits = [
 
 export default function Career() {
   const formRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -66,7 +68,6 @@ export default function Career() {
     role: "",
     linkedinUrl: "",
     portfolioUrl: "",
-    resumeUrl: "",
     coverLetter: "",
   });
 
@@ -85,6 +86,24 @@ export default function Career() {
     setFormData((prev) => ({ ...prev, role: value }));
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      if (!allowedTypes.includes(file.type)) {
+        toast.error("Please upload a PDF or Word document");
+        return;
+      }
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("File size must be less than 10MB");
+        return;
+      }
+      setResumeFile(file);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -93,9 +112,30 @@ export default function Career() {
       return;
     }
 
+    if (!resumeFile) {
+      toast.error("Please upload your resume");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
+      // Upload resume to storage
+      const fileExt = resumeFile.name.split('.').pop();
+      const fileName = `${Date.now()}_${formData.fullName.replace(/\s+/g, '_')}.${fileExt}`;
+      
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('resumes')
+        .upload(fileName, resumeFile);
+
+      if (uploadError) {
+        console.error("Upload error:", uploadError);
+        throw new Error("Failed to upload resume");
+      }
+
+      // Get the file path
+      const resumeUrl = uploadData.path;
+
       // Save to database
       const { error } = await supabase
         .from("job_applications")
@@ -106,7 +146,7 @@ export default function Career() {
           role: formData.role,
           linkedin_url: formData.linkedinUrl || null,
           portfolio_url: formData.portfolioUrl || null,
-          resume_url: formData.resumeUrl || null,
+          resume_url: resumeUrl,
           cover_letter: formData.coverLetter || null,
         });
 
@@ -123,6 +163,7 @@ export default function Career() {
             linkedin_url: formData.linkedinUrl || null,
             portfolio_url: formData.portfolioUrl || null,
             cover_letter: formData.coverLetter || null,
+            resume_file_name: resumeFile.name,
           },
         });
       } catch (emailError) {
@@ -131,6 +172,7 @@ export default function Career() {
       }
 
       setSubmitted(true);
+      setResumeFile(null);
       toast.success("Application submitted successfully!");
     } catch (error) {
       console.error("Error submitting application:", error);
@@ -413,15 +455,33 @@ export default function Career() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="resumeUrl">Resume Link (Google Drive, Dropbox, etc.)</Label>
-                  <Input
-                    id="resumeUrl"
-                    name="resumeUrl"
-                    type="url"
-                    value={formData.resumeUrl}
-                    onChange={handleInputChange}
-                    placeholder="https://drive.google.com/..."
+                  <Label htmlFor="resume">Resume (PDF or Word) *</Label>
+                  <input
+                    ref={fileInputRef}
+                    id="resume"
+                    name="resume"
+                    type="file"
+                    accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    onChange={handleFileChange}
+                    className="hidden"
                   />
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex items-center gap-3 p-4 border border-dashed border-border rounded-lg cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-colors"
+                  >
+                    {resumeFile ? (
+                      <>
+                        <FileText className="h-5 w-5 text-primary" />
+                        <span className="text-sm text-foreground">{resumeFile.name}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-5 w-5 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">Click to upload your resume</span>
+                      </>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">Max file size: 10MB</p>
                 </div>
 
                 <div className="space-y-2">
