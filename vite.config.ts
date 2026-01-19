@@ -4,11 +4,23 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 
 export default defineConfig(({ mode }) => ({
+  // server: {
+  //   host: "::",
+  //   port: 8080,
+  //   proxy: {
+  //     "/api": "http://localhost:8000",
+  //   },
+  // },
   server: {
     host: "::",
-    port: 8080,
+    port: 5173,
     proxy: {
-      "/api": "http://localhost:8000",
+      "/api": {
+        target: "http://127.0.0.1:8080",
+        changeOrigin: true,
+        // Only keep this rewrite if your backend routes do NOT include /api
+        // rewrite: (path) => path.replace(/^\/api/, ""),
+      },
     },
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),

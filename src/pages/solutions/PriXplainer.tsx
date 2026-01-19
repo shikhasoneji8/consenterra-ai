@@ -13,7 +13,7 @@ import AuroraBackground from "@/components/AuroraBackground";
 import AnimatedSection from "@/components/AnimatedSection";
 import GlowCard from "@/components/GlowCard";
 import DemoCarousel from "@/components/DemoCarousel";
-import WebsiteRiskScan from "@/components/scan/WebsiteRiskScan";
+// import WebsiteRiskScan from "@/components/scan/WebsiteRiskScan";
 import { Button } from "@/components/ui/button";
 
 /** =========================================================
@@ -1538,7 +1538,7 @@ export default function PriXplainer() {
       />
 
       {/* Website Risk Scan Tool */}
-      <WebsiteRiskScan />
+      {/* <WebsiteRiskScan /> */}
 
       {/* ✅ Integrated Policy Analyzer Tool */}
       <PriXplainerPolicyAnalyzer />

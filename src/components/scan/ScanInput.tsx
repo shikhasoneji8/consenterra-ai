@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Search, Sparkles } from "lucide-react";
+// import { Search, Sparkles } from "lucide-react";
+import { Search, Sparkles, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
@@ -7,9 +8,16 @@ import { motion } from "framer-motion";
 interface ScanInputProps {
   onScan: (url: string) => void;
   isLoading: boolean;
+  disabled?: boolean;
+  onDisabledClick?: () => void;
 }
 
-export default function ScanInput({ onScan, isLoading }: ScanInputProps) {
+export default function ScanInput({
+  onScan,
+  isLoading,
+  disabled = false,
+  onDisabledClick,
+}: ScanInputProps) {
   const [url, setUrl] = useState("");
   const [error, setError] = useState("");
 
@@ -30,19 +38,36 @@ export default function ScanInput({ onScan, isLoading }: ScanInputProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+  
+    if (disabled) {
+      onDisabledClick?.();
+      return;
+    }
+  
     const validationError = validateUrl(url);
     if (validationError) {
       setError(validationError);
       return;
     }
+  
     setError("");
     onScan(url.trim());
   };
 
   const handleDemoScan = () => {
+    if (disabled) {
+      onDisabledClick?.();
+      return;
+    }
     setUrl("facebook.com");
     setError("");
     onScan("facebook.com");
+  };
+
+  const handleButtonClick = () => {
+    if (disabled) {
+      onDisabledClick?.();
+    }
   };
 
   return (
@@ -82,12 +107,24 @@ export default function ScanInput({ onScan, isLoading }: ScanInputProps) {
             <Button
               type="submit"
               disabled={isLoading}
-              variant="glow"
+              onClick={handleButtonClick}
+              variant={disabled ? "secondary" : "glow"}
               size="lg"
-              className="h-14 px-8 text-lg font-semibold whitespace-nowrap spark-hover"
+              className={`h-14 px-8 text-lg font-semibold whitespace-nowrap ${
+                disabled ? "opacity-75 cursor-not-allowed" : "spark-hover"
+              }`}
             >
-              <Sparkles className="mr-2 h-5 w-5" />
-              Scan Now
+              {disabled ? (
+                <>
+                  <Lock className="mr-2 h-5 w-5" />
+                  Limit Reached
+                </>
+              ) : (
+                <>
+                  <Sparkles className="mr-2 h-5 w-5" />
+                  Scan Now
+                </>
+              )}
             </Button>
           </div>
           
@@ -96,14 +133,28 @@ export default function ScanInput({ onScan, isLoading }: ScanInputProps) {
               {error}
             </p>
           )}
+          {disabled && (
+            <p className="text-sm text-center text-muted-foreground">
+              You've used your 2 free scans.{" "}
+              <button
+                type="button"
+                onClick={onDisabledClick}
+                className="text-primary hover:underline font-medium"
+              >
+                Sign up to continue
+              </button>
+            </p>
+          )}
         </form>
 
         <div className="mt-4 flex justify-center">
-          <button
-            onClick={handleDemoScan}
-            disabled={isLoading}
-            className="text-sm text-muted-foreground hover:text-primary transition-colors underline underline-offset-4"
-          >
+        <button
+          onClick={handleDemoScan}
+          disabled={isLoading}
+          className={`text-sm text-muted-foreground hover:text-primary transition-colors underline underline-offset-4 ${
+            disabled ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+        >
             Try a demo scan
           </button>
         </div>

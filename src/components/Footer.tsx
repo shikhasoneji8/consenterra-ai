@@ -1,4 +1,5 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import logo from "@/assets/ConsenTerra_Logo.png";
 import AuroraBackground from "@/components/AuroraBackground";
 
@@ -11,6 +12,12 @@ const footerLinks = {
     { name: "About Us", href: "/about" },
     { name: "Career", href: "/career" },
     { name: "Contact Us", href: "/contact" },
+  ],
+  product: [
+    { name: "Roadmap", href: "/roadmap" },
+    { name: "Changelog", href: "/changelog" },
+    { name: "Research", href: "/research" },
+    { name: "Responsible AI", href: "/about#responsible-ai" },
   ],
   solutions: [
     { name: "PriXplainer", href: "/solutions/prixplainer" },
@@ -32,8 +39,11 @@ export default function Footer() {
   };
 
   return (
-    <footer className="border-t border-border bg-card">
+    <footer className="relative border-t border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
       <div className="section-container py-12 lg:py-16">
+      <div className="absolute inset-0 opacity-30">
+        <AuroraBackground showParticles={false} />
+      </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           {/* Brand */}
           <div className="lg:col-span-1">
@@ -43,6 +53,7 @@ export default function Footer() {
             >
               <img src={logo} alt="ConsenTerra" className="h-10 w-10" />
               <span className="text-lg font-semibold text-foreground">ConsenTerra</span>
+              <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-accent group-hover:w-full transition-all duration-300" />
             </button>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Clarity for Everyday Decisions. Empowering individuals and organizations with AI-driven insights.

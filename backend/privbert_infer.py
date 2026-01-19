@@ -3,6 +3,15 @@ import os
 import torch
 import numpy as np
 from typing import Dict, Any, List
+import os
+from pathlib import Path
+
+MODEL_DIR = Path(
+    os.getenv("MODEL_DIR", Path(__file__).parent / "privbert_model")
+).resolve()
+
+if not MODEL_DIR.exists():
+    raise FileNotFoundError(f"MODEL_DIR not found: {MODEL_DIR}")
 
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 

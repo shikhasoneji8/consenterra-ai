@@ -23,6 +23,10 @@ from typing import Optional, Dict, Any, Tuple
 from uuid import uuid4
 from datetime import datetime, timezone
 from db.usage import increment_prixplainer_usage
+import re
+import requests
+from bs4 import BeautifulSoup
+from fastapi import HTTPException
 
 # If you already have these, don't duplicate:
 # from db.supabase_admin import supabase_admin
@@ -30,7 +34,29 @@ from db.usage import increment_prixplainer_usage
 
 FREE_PRIXPLAINER_TRIES = 2
 
+DEV_TESTER_EMAILS = set(
+    (os.getenv("DEV_TESTER_EMAILS", "")).lower().replace(" ", "").split(",")
+) - {""}
 
+def extract_text_from_url(url: str) -> str:
+    if not url.startswith("http"):
+        url = "https://" + url
+
+    r = requests.get(url, timeout=10, headers={
+        "User-Agent": "Mozilla/5.0"
+    })
+    r.raise_for_status()
+
+    soup = BeautifulSoup(r.text, "html.parser")
+
+    for tag in soup(["script", "style", "noscript"]):
+        tag.decompose()
+
+    text = " ".join(soup.stripped_strings)
+    return text[:15000]  # keep model-safe
+
+def is_dev_tester(email: str) -> bool:
+    return email.lower().strip() in DEV_TESTER_EMAILS
 
 # Load backend/.env explicitly
 env_path = Path(__file__).resolve().parent / ".env"
@@ -56,6 +82,33 @@ app.include_router(auth_router, prefix="/api")
 #     if len(parts) == 2 and parts[0].lower() == "bearer":
 #         return parts[1]
 #     return None
+
+class PrixplainerUrlRequest(BaseModel):
+    url: str
+    threshold: float = 0.0
+    top_k: int = 5
+
+def is_valid_http_url(url: str) -> bool:
+    return bool(re.match(r"^https?://", url.strip(), re.IGNORECASE))
+
+def extract_text_from_html(html: str) -> str:
+    soup = BeautifulSoup(html, "html.parser")
+
+    # remove junk
+    for tag in soup(["script", "style", "noscript", "svg", "canvas", "iframe", "form", "header", "footer", "nav"]):
+        tag.decompose()
+
+    # try to focus on main content if present
+    main = soup.find("main") or soup.find("article") or soup.body or soup
+    text = main.get_text(separator="\n")
+
+    # clean whitespace
+    lines = [line.strip() for line in text.splitlines()]
+    lines = [line for line in lines if line]
+    cleaned = "\n".join(lines)
+
+    # optional: cap insane length
+    return cleaned[:120000]  # keep it bounded
 
 def get_client_ip(request) -> Optional[str]:
     # Works in production behind proxies too
@@ -283,6 +336,75 @@ def analyze(req: PrixplainerRequest):
     pred = predict(req.text)
     return {"summary": "PrivBERT classification result", "prediction": pred}
 
+@app.post("/api/prixplainer/annotate-url")
+async def prixplainer_annotate_url(request: Request, payload: PrixplainerUrlRequest):
+    email = request.headers.get("x-user-email")
+    if not email:
+        raise HTTPException(status_code=401, detail="Missing x-user-email header")
+
+    # ✅ keep your current quota logic EXACTLY the same
+    user_id, email = ensure_user_profile(email, request)
+    ensure_user_usage_row(user_id, email, feature="prixplainer")
+
+    usage_res = (
+        supabase_admin
+        .table("user_usage")
+        .select("free_runs_used,pro_runs_used,usage_count")
+        .eq("user_id", user_id)
+        .eq("feature", "prixplainer")
+        .execute()
+    )
+    if getattr(usage_res, "error", None):
+        raise HTTPException(status_code=500, detail=f"user_usage lookup error: {usage_res.error}")
+
+    usage_rows = usage_res.data or []
+    free_used = int((usage_rows[0].get("free_runs_used") if usage_rows else 0) or 0)
+
+    if free_used >= 2:
+        raise HTTPException(
+            status_code=402,
+            detail="Free limit reached. Please subscribe to the Pro plan to continue using PriXplainer."
+        )
+
+    # ✅ fetch policy page
+    url = payload.url.strip()
+    if not is_valid_http_url(url):
+        raise HTTPException(status_code=400, detail="URL must start with http:// or https://")
+
+    try:
+        r = requests.get(
+            url,
+            timeout=12,
+            headers={
+                "User-Agent": "Mozilla/5.0 (PriXplainerBot/1.0)",
+                "Accept": "text/html,application/xhtml+xml",
+            },
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to fetch URL: {str(e)}")
+
+    if r.status_code >= 400:
+        raise HTTPException(status_code=400, detail=f"URL returned HTTP {r.status_code}")
+
+    content_type = r.headers.get("content-type", "")
+    if "text/html" not in content_type and "application/xhtml+xml" not in content_type:
+        raise HTTPException(status_code=400, detail=f"URL did not return HTML (got {content_type})")
+
+    text = extract_text_from_html(r.text)
+    if len(text.strip()) < 200:
+        raise HTTPException(status_code=400, detail="Could not extract enough readable text from this page")
+
+    # ✅ increment usage AFTER successful fetch/extract
+    usage = increment_prixplainer_usage(user_id, email)
+
+    # ✅ run same analysis
+    result = annotate_policy(text=text, threshold=payload.threshold, top_k=payload.top_k)
+    return {
+        **result,
+        "source": {"type": "url", "url": url},
+        "usage": usage,
+    }
+
 # @app.post("/api/prixplainer/annotate")
 # def prixplainer_annotate(payload: dict = Body(...)):
 #     text = payload.get("text", "")
@@ -363,15 +485,15 @@ async def prixplainer_annotate(request: Request, payload: dict = Body(...)):
     usage_rows = usage_res.data or []
     free_used = int((usage_rows[0].get("free_runs_used") if usage_rows else 0) or 0)
 
-    # ✅ Paywall: free users get 2 runs
-    if free_used >= 2:
+    # ✅ Paywall: free users get 2 runs (unless dev tester)
+    if (not is_dev_tester(email)) and free_used >= FREE_PRIXPLAINER_TRIES:
         raise HTTPException(
             status_code=402,
             detail="Free limit reached. Please subscribe to the Pro plan to continue using PriXplainer."
         )
 
-    # ✅ Increment usage (your existing function is fine)
-    usage = increment_prixplainer_usage(user_id, email)
+    # ✅ Increment usage (you may want to skip increment for dev testers; optional)
+    usage = {"allowed": True, "dev_bypass": True} if is_dev_tester(email) else increment_prixplainer_usage(user_id, email)
 
     # ✅ Run annotate
     text = payload.get("text", "")
@@ -379,4 +501,4 @@ async def prixplainer_annotate(request: Request, payload: dict = Body(...)):
     top_k = int(payload.get("top_k", 5))
     result = annotate_policy(text=text, threshold=threshold, top_k=top_k)
 
-    return {**result, "usage": usage}
+    return {**result, "usage": usage, "dev_bypass": is_dev_tester(email)}

@@ -108,7 +108,20 @@ export default function Career() {
           resume_url: formData.resumeUrl || null,
           cover_letter: formData.coverLetter || null,
         });
-
+        await fetch("/api/send-application", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fullName: formData.fullName,
+            email: formData.email,
+            phone: formData.phone,
+            role: formData.role,
+            linkedinUrl: formData.linkedinUrl,
+            portfolioUrl: formData.portfolioUrl,
+            resumeUrl: formData.resumeUrl, // currently a link in your UI
+            coverLetter: formData.coverLetter,
+          }),
+        });
       if (error) throw error;
 
       setSubmitted(true);
