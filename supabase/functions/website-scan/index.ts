@@ -1,148 +1,110 @@
-// import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 
-import { serve } from "https://deno.land/std/http/server.ts";
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-serve(async (req) => {
+interface ApplicationNotificationRequest {
+  full_name: string;
+  email: string;
+  phone?: string;
+  role: string;
+  linkedin_url?: string;
+  portfolio_url?: string;
+  cover_letter?: string;
+}
+
+const handler = async (req: Request): Promise<Response> => {
+  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { url } = await req.json();
+    const application: ApplicationNotificationRequest = await req.json();
+    console.log("Received application notification request:", application);
+
+    const { full_name, email, phone, role, linkedin_url, portfolio_url, cover_letter } = application;
+
+    const emailHtml = `
+      <h1>New Job Application Received</h1>
+      <h2>Applicant Details</h2>
+      <table style="border-collapse: collapse; width: 100%; max-width: 600px;">
+        <tr>
+          <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Name</td>
+          <td style="padding: 8px; border: 1px solid #ddd;">${full_name}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Email</td>
+          <td style="padding: 8px; border: 1px solid #ddd;"><a href="mailto:${email}">${email}</a></td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Phone</td>
+          <td style="padding: 8px; border: 1px solid #ddd;">${phone || 'Not provided'}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Role Applied For</td>
+          <td style="padding: 8px; border: 1px solid #ddd;">${role}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">LinkedIn</td>
+          <td style="padding: 8px; border: 1px solid #ddd;">${linkedin_url ? `<a href="${linkedin_url}">${linkedin_url}</a>` : 'Not provided'}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Portfolio</td>
+          <td style="padding: 8px; border: 1px solid #ddd;">${portfolio_url ? `<a href="${portfolio_url}">${portfolio_url}</a>` : 'Not provided'}</td>
+        </tr>
+      </table>
+      ${cover_letter ? `
+        <h3>Cover Letter</h3>
+        <div style="padding: 16px; background-color: #f5f5f5; border-radius: 8px; white-space: pre-wrap;">${cover_letter}</div>
+      ` : ''}
+      <p style="margin-top: 24px; color: #666;">This is an automated notification from ConsenTerra Careers.</p>
+    `;
+
+    // Send to both recipients
+    const recipients = ["shikha@consenterra.ai", "sameer@consenterra.ai"];
     
-    if (!url) {
-      return new Response(
-        JSON.stringify({ error: "URL is required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Normalize the URL/domain
-    let domain = url.trim().toLowerCase();
-    domain = domain.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0];
-
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
-    }
-
-    const systemPrompt = `You are a privacy and security analyst for websites. Given a website domain, analyze typical privacy practices for that type of site and provide a comprehensive risk assessment.
-
-You MUST return a valid JSON object with this exact structure:
-{
-  "domain": "the domain being analyzed",
-  "score": number from 0-100 (100 = most trustworthy),
-  "risk_level": "Low" | "Medium" | "High",
-  "summary": "1-2 sentence plain-language summary of the site's privacy stance",
-  "immediate_risks": [
-    {"severity": "green" | "yellow" | "red", "text": "risk description"}
-  ],
-  "dark_patterns": {
-    "detected": boolean,
-    "items": [{"type": "pattern name", "evidence": "where/how it appears"}]
-  },
-  "digital_footprint": {
-    "chips": ["Tracking/Analytics", "Third-party sharing indicators", "Ads/retargeting indicators", "Account data", "Location", "Device identifiers"],
-    "details": [{"label": "category", "text": "explanation"}],
-    "note": "AI inference disclaimer"
-  },
-  "actions": [
-    {"title": "action title", "text": "brief instruction"}
-  ],
-  "confidence": "Low" | "Medium" | "High"
-}
-
-Guidelines:
-- Be non-legal, use plain English
-- Avoid scary language unless risk is truly high
-- Clearly label uncertainty and inference
-- Provide 3-6 immediate risks
-- Provide 3-5 actionable steps
-- Keep output concise and helpful
-- Base analysis on known practices of the domain type (social media, e-commerce, news, etc.)`;
-
-    const userPrompt = `Analyze the privacy and security practices of this website: ${domain}
-
-Consider:
-1. What type of site is this? (social media, e-commerce, news, search engine, etc.)
-2. What data do sites like this typically collect?
-3. Are there known privacy concerns with this specific site or type of site?
-4. What tracking technologies are commonly used?
-5. Are there any known dark patterns?
-6. What should users be aware of?
-
-Return only the JSON object, no markdown or explanation.`;
-
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
+        Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        temperature: 0.7,
+        from: "ConsenTerra Careers <careers@consenterra.ai>",
+        to: recipients,
+        subject: `New Application: ${role} - ${full_name}`,
+        html: emailHtml,
       }),
     });
 
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limits exceeded, please try again later." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Payment required, please add funds." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
-      throw new Error("AI gateway error");
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Resend API error:", errorText);
+      throw new Error(`Failed to send email: ${errorText}`);
     }
 
-    const aiResponse = await response.json();
-    const content = aiResponse.choices?.[0]?.message?.content;
+    const emailResponse = await res.json();
+    console.log("Email sent successfully to:", recipients, emailResponse);
 
-    if (!content) {
-      throw new Error("No content in AI response");
-    }
-
-    // Parse the JSON from the AI response
-    let scanResult;
-    try {
-      // Remove any markdown code blocks if present
-      const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-      scanResult = JSON.parse(cleanContent);
-    } catch (parseError) {
-      console.error("Failed to parse AI response:", content);
-      throw new Error("Failed to parse scan results");
-    }
-
-    // Ensure domain is set correctly
-    scanResult.domain = domain;
-
+    return new Response(JSON.stringify({ success: true, emailResponse }), {
+      status: 200,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
+  } catch (error: any) {
+    console.error("Error in send-application-notification function:", error);
     return new Response(
-      JSON.stringify(scanResult),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-
-  } catch (error) {
-    console.error("Website scan error:", error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Scan failed" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ error: error.message }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      }
     );
   }
-});
+};
+
+serve(handler);

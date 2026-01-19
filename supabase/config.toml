@@ -1,1 +1,7 @@
 project_id = "hclsesnrhxvbxbnhxery"
+
+[functions.website-scan]
+verify_jwt = false
+
+[functions.send-application-notification]
+verify_jwt = false
