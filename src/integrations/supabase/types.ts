@@ -14,6 +14,80 @@ export type Database = {
   }
   public: {
     Tables: {
+      deals: {
+        Row: {
+          checkout_url: string | null
+          created_at: string
+          deal_terms: Json
+          id: string
+          panel_id: string
+          status: Database["public"]["Enums"]["deal_status"]
+        }
+        Insert: {
+          checkout_url?: string | null
+          created_at?: string
+          deal_terms?: Json
+          id?: string
+          panel_id: string
+          status?: Database["public"]["Enums"]["deal_status"]
+        }
+        Update: {
+          checkout_url?: string | null
+          created_at?: string
+          deal_terms?: Json
+          id?: string
+          panel_id?: string
+          status?: Database["public"]["Enums"]["deal_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deals_panel_id_fkey"
+            columns: ["panel_id"]
+            isOneToOne: false
+            referencedRelation: "panels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_applications: {
+        Row: {
+          cover_letter: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          linkedin_url: string | null
+          phone: string | null
+          portfolio_url: string | null
+          resume_url: string | null
+          role: string
+        }
+        Insert: {
+          cover_letter?: string | null
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          linkedin_url?: string | null
+          phone?: string | null
+          portfolio_url?: string | null
+          resume_url?: string | null
+          role: string
+        }
+        Update: {
+          cover_letter?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          linkedin_url?: string | null
+          phone?: string | null
+          portfolio_url?: string | null
+          resume_url?: string | null
+          role?: string
+        }
+        Relationships: []
+      }
       login_events: {
         Row: {
           id: string
@@ -35,6 +109,83 @@ export type Database = {
           logged_in_at?: string
           user_agent?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      panels: {
+        Row: {
+          created_at: string
+          id: string
+          offers: Json
+          personas: Json
+          pitch_id: string
+          questions: Json
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          offers?: Json
+          personas?: Json
+          pitch_id: string
+          questions?: Json
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          offers?: Json
+          personas?: Json
+          pitch_id?: string
+          questions?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "panels_pitch_id_fkey"
+            columns: ["pitch_id"]
+            isOneToOne: false
+            referencedRelation: "pitches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pitches: {
+        Row: {
+          arr: number | null
+          ask_amount: number
+          created_at: string
+          equity_percent: number
+          id: string
+          mrr: number | null
+          parsed_json: Json | null
+          raw_pitch_text: string
+          stage: Database["public"]["Enums"]["pitch_stage"] | null
+          startup_name: string | null
+          user_id: string | null
+        }
+        Insert: {
+          arr?: number | null
+          ask_amount: number
+          created_at?: string
+          equity_percent: number
+          id?: string
+          mrr?: number | null
+          parsed_json?: Json | null
+          raw_pitch_text: string
+          stage?: Database["public"]["Enums"]["pitch_stage"] | null
+          startup_name?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          arr?: number | null
+          ask_amount?: number
+          created_at?: string
+          equity_percent?: number
+          id?: string
+          mrr?: number | null
+          parsed_json?: Json | null
+          raw_pitch_text?: string
+          stage?: Database["public"]["Enums"]["pitch_stage"] | null
+          startup_name?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -71,6 +222,72 @@ export type Database = {
         }
         Relationships: []
       }
+      scan_history: {
+        Row: {
+          findings: Json | null
+          id: string
+          risk_level: string
+          risk_score: number
+          scanned_at: string
+          summary: string | null
+          url: string
+          user_id: string
+        }
+        Insert: {
+          findings?: Json | null
+          id?: string
+          risk_level: string
+          risk_score: number
+          scanned_at?: string
+          summary?: string | null
+          url: string
+          user_id: string
+        }
+        Update: {
+          findings?: Json | null
+          id?: string
+          risk_level?: string
+          risk_score?: number
+          scanned_at?: string
+          summary?: string | null
+          url?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_subscriptions: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          plan: string
+          price_monthly: number | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          plan?: string
+          price_monthly?: number | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          plan?: string
+          price_monthly?: number | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -79,7 +296,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      deal_status: "draft" | "accepted" | "declined" | "paid"
+      pitch_stage: "mvp" | "pre_seed" | "seed" | "growth"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -206,6 +424,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      deal_status: ["draft", "accepted", "declined", "paid"],
+      pitch_stage: ["mvp", "pre_seed", "seed", "growth"],
+    },
   },
 } as const

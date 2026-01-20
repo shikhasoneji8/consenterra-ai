@@ -16,121 +16,97 @@ import type { ScanResult, ScanStatus } from "@/types/scan";
 import type { Json } from "@/integrations/supabase/types";
 import type { PersonaType } from "./PersonaToggle";
 
-/**
- * Dev bypass: only on localhost / preview AND ?dev=1
- */
+// Check for dev bypass - only works on preview/localhost with ?dev=1
 const isDevBypass = (): boolean => {
-  if (typeof window === "undefined") return false;
+  if (typeof window === 'undefined') return false;
   const hostname = window.location.hostname;
-  const isDevEnvironment =
-    hostname === "localhost" ||
-    hostname.includes("127.0.0.1") ||
-    hostname.includes(".lovable.app") ||
-    hostname.includes("preview");
-
-  const hasDevParam = new URLSearchParams(window.location.search).get("dev") === "1";
+  const isDevEnvironment = hostname === 'localhost' || 
+                           hostname.includes('127.0.0.1') || 
+                           hostname.includes('.lovable.app') ||
+                           hostname.includes('preview');
+  const hasDevParam = new URLSearchParams(window.location.search).get('dev') === '1';
   return isDevEnvironment && hasDevParam;
 };
 
-const DEV_EMAILS = new Set([
-  "shikha@consenterra.ai",
-  "shikhasoneji8@gmail.com",
-  "sameer.neve@gmail.com",
-]);
-
-const isDevTester = (email?: string | null) =>
-  !!email && DEV_EMAILS.has(email.toLowerCase().trim());
-
 export default function WebsiteRiskScan() {
   const { user } = useAuth();
-  const devTesterMode = isDevTester(user?.email);
   const { scanCount, canScan, refreshSubscription } = useSubscription();
   const { remainingTries, canUseAsGuest, incrementUsage, getUsageToken } = useGuestUsage();
-
-  const [status, setStatus] = useState<ScanStatus>("idle");
+  const [status, setStatus] = useState<ScanStatus>('idle');
   const [progressStep, setProgressStep] = useState(0);
   const [result, setResult] = useState<ScanResult | null>(null);
   const [showPaywall, setShowPaywall] = useState(false);
   const [showGuestLimit, setShowGuestLimit] = useState(false);
-  const [currentPersona, setCurrentPersona] = useState<PersonaType>("everyday");
-  const [lastScannedUrl, setLastScannedUrl] = useState<string>("");
+  const [currentPersona, setCurrentPersona] = useState<PersonaType>('everyday');
+  const [lastScannedUrl, setLastScannedUrl] = useState<string>('');
   const [isRescanningPersona, setIsRescanningPersona] = useState(false);
-
+  
   const devMode = isDevBypass();
 
   const saveScanToHistory = async (scanResult: ScanResult) => {
     if (!user) return;
-
+    
     try {
-      const { error } = await supabase.from("scan_history").insert([
-        {
-          user_id: user.id,
-          url: scanResult.domain,
-          risk_score: scanResult.score,
-          risk_level: scanResult.risk_level,
-          summary: scanResult.summary,
-          findings: JSON.parse(
-            JSON.stringify({
-              immediate_risks: scanResult.immediate_risks,
-              dark_patterns: scanResult.dark_patterns,
-              digital_footprint: scanResult.digital_footprint,
-              actions: scanResult.actions,
-              confidence: scanResult.confidence,
-            })
-          ) as Json,
-        },
-      ]);
+      const { error } = await supabase.from('scan_history').insert([{
+        user_id: user.id,
+        url: scanResult.domain,
+        risk_score: scanResult.score,
+        risk_level: scanResult.risk_level,
+        summary: scanResult.summary,
+        findings: JSON.parse(JSON.stringify({
+          immediate_risks: scanResult.immediate_risks,
+          dark_patterns: scanResult.dark_patterns,
+          digital_footprint: scanResult.digital_footprint,
+          actions: scanResult.actions,
+          confidence: scanResult.confidence
+        })) as Json
+      }]);
 
       if (error) {
-        console.error("Failed to save scan history:", error);
+        console.error('Failed to save scan history:', error);
       } else {
+        // Refresh subscription to update scan count
         await refreshSubscription();
       }
     } catch (err) {
-      console.error("Error saving scan history:", err);
+      console.error('Error saving scan history:', err);
     }
   };
 
+  // Re-scan with different persona
   const handlePersonaChange = async (newPersona: PersonaType) => {
     if (newPersona === currentPersona || !lastScannedUrl) return;
-
+    
     setCurrentPersona(newPersona);
     setIsRescanningPersona(true);
-
+    
     try {
-      const requestBody: {
-        url: string;
-        guest_token?: string;
-        persona: PersonaType;
-        is_persona_rescan: boolean;
-        dev_bypass?: boolean;
-      } = {
+      const requestBody: { url: string; guest_token?: string; persona: PersonaType; is_persona_rescan: boolean } = { 
         url: lastScannedUrl,
         persona: newPersona,
-        is_persona_rescan: true,
+        is_persona_rescan: true // Flag to skip guest limit check for persona changes
       };
+      if (!user) {
+        requestBody.guest_token = getUsageToken();
+      }
 
-      if (devMode || devTesterMode) requestBody.dev_bypass = true;
-      else if (!user) requestBody.guest_token = getUsageToken();
-
-      const { data, error } = await supabase.functions.invoke("website-scan", {
-        body: requestBody,
+      const { data, error } = await supabase.functions.invoke('website-scan', {
+        body: requestBody
       });
 
       if (error) {
-        console.error("Persona rescan error:", error);
+        console.error('Persona rescan error:', error);
         toast.error("Couldn't refresh analysis. Please try again.");
+        setIsRescanningPersona(false);
         return;
       }
 
-      if (data?.domain) {
+      if (data && data.domain) {
         setResult(data as ScanResult);
-        toast.success("Analysis view updated.");
-      } else {
-        toast.error("Couldn't refresh analysis. Please try again.");
+        toast.success(`Analysis updated for ${newPersona === 'everyday' ? 'Everyday User' : newPersona === 'privacy' ? 'Privacy-conscious' : 'Business'} view`);
       }
     } catch (err) {
-      console.error("Persona rescan error:", err);
+      console.error('Persona rescan error:', err);
       toast.error("Couldn't refresh analysis. Please try again.");
     } finally {
       setIsRescanningPersona(false);
@@ -139,15 +115,17 @@ export default function WebsiteRiskScan() {
 
   const handleScan = async (url: string, personaOverride?: PersonaType) => {
     const persona = personaOverride || currentPersona;
-
-    // Enforce limits unless dev bypass or dev tester email
-    if (!devMode && !devTesterMode) {
+    
+    // Skip limits in dev mode
+    if (!devMode) {
+      // For unauthenticated users, check guest limit
       if (!user) {
         if (!canUseAsGuest) {
           setShowGuestLimit(true);
           return;
         }
       } else {
+        // For authenticated users, check subscription scan limit
         if (!canScan) {
           setShowPaywall(true);
           return;
@@ -155,84 +133,92 @@ export default function WebsiteRiskScan() {
       }
     }
 
-    setStatus("scanning");
+    setStatus('scanning');
     setProgressStep(0);
     setResult(null);
     setLastScannedUrl(url);
 
     try {
-      const progressTimer1 = window.setTimeout(() => setProgressStep(1), 1500);
-      const progressTimer2 = window.setTimeout(() => setProgressStep(2), 3000);
+      // Simulate progress steps
+      const progressTimer1 = setTimeout(() => setProgressStep(1), 1500);
+      const progressTimer2 = setTimeout(() => setProgressStep(2), 3000);
 
-      const requestBody: {
-        url: string;
-        guest_token?: string;
-        persona: PersonaType;
-        dev_bypass?: boolean;
-      } = { url, persona };
+      // Include guest usage token, persona, and dev mode for backend
+      const requestBody: { url: string; guest_token?: string; persona: PersonaType; dev_bypass?: boolean } = { 
+        url,
+        persona
+      };
+      if (devMode) {
+        requestBody.dev_bypass = true;
+      } else if (!user) {
+        requestBody.guest_token = getUsageToken();
+      }
 
-      if (devMode || devTesterMode) requestBody.dev_bypass = true;
-      else if (!user) requestBody.guest_token = getUsageToken();
-
-      const { data, error } = await supabase.functions.invoke("website-scan", {
-        body: requestBody,
+      const { data, error } = await supabase.functions.invoke('website-scan', {
+        body: requestBody
       });
 
-      window.clearTimeout(progressTimer1);
-      window.clearTimeout(progressTimer2);
+      clearTimeout(progressTimer1);
+      clearTimeout(progressTimer2);
 
       if (error) {
-        console.error("Scan error:", error);
-
-        const msg = (error as any)?.message ?? "";
-        if (msg.includes("429")) toast.error("Rate limit exceeded. Try again shortly.");
-        else if (msg.includes("402")) toast.error("Service limit reached. Try later.");
-        else if (msg.includes("403") || msg.includes("guest_limit")) {
+        console.error('Scan error:', error);
+        
+        // Handle specific error codes
+        if (error.message?.includes('429')) {
+          toast.error("Rate limit exceeded. Please try again in a moment.");
+        } else if (error.message?.includes('402')) {
+          toast.error("Service limit reached. Please try again later.");
+        } else if (error.message?.includes('403') || error.message?.includes('guest_limit')) {
+          // Backend rejected due to guest limit
           setShowGuestLimit(true);
-          setStatus("idle");
+          setStatus('idle');
           return;
         } else {
           toast.error("We couldn't scan this site. Try again or use demo scan.");
         }
-
-        setStatus("error");
+        setStatus('error');
         return;
       }
 
-      if (data?.domain) {
+      if (data && data.domain) {
         const scanResult = data as ScanResult;
         setResult(scanResult);
-        setStatus("complete");
-
+        setStatus('complete');
+        
+        // For guests, increment usage count after successful scan
         if (!user) {
           incrementUsage();
         } else {
+          // Save to history for logged-in users
           await saveScanToHistory(scanResult);
         }
       } else {
         toast.error("We couldn't scan this site. Try again or use demo scan.");
-        setStatus("error");
+        setStatus('error');
       }
     } catch (err) {
-      console.error("Scan error:", err);
+      console.error('Scan error:', err);
       toast.error("We couldn't scan this site. Try again or use demo scan.");
-      setStatus("error");
+      setStatus('error');
     }
   };
 
   const handleScanAnother = () => {
-    setStatus("idle");
+    setStatus('idle');
     setResult(null);
     setProgressStep(0);
-    setLastScannedUrl("");
+    setLastScannedUrl('');
   };
 
-  const isScanDisabled = !devMode && !devTesterMode && !user && !canUseAsGuest;
+  // Determine if the scan button should be disabled (never disabled in dev mode)
+  const isScanDisabled = !devMode && !user && !canUseAsGuest;
 
   return (
     <>
       <AnimatedSection className="py-16 lg:py-20">
         <div className="section-container">
+          {/* Section Header */}
           <div className="text-center mb-10">
             <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/20 mb-4">
               <Shield className="h-7 w-7 text-primary" />
@@ -243,11 +229,9 @@ export default function WebsiteRiskScan() {
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               One click. Clear answers. No legalese.
               <br />
-              <span className="text-foreground/70">
-                Paste a site. We&#39;ll flag risks, dark patterns, and data collection habits.
-              </span>
+              <span className="text-foreground/70">Paste a site. We'll flag risks, dark patterns, and data collection habits.</span>
             </p>
-
+            {/* Usage counter */}
             {user ? (
               <p className="text-sm text-muted-foreground mt-2">
                 Scans used: {scanCount} / {canScan ? "∞" : "2"}
@@ -255,47 +239,45 @@ export default function WebsiteRiskScan() {
             ) : (
               <p className="text-sm text-muted-foreground mt-2">
                 {remainingTries > 0 ? (
-                  <>
-                    Free tries remaining:{" "}
-                    <span className="font-semibold text-primary">{remainingTries}</span>
-                  </>
+                  <>Free tries remaining: <span className="font-semibold text-primary">{remainingTries}</span></>
                 ) : (
-                  <span className="text-destructive font-medium">
-                    Free tries used — Sign up to continue
-                  </span>
+                  <span className="text-destructive font-medium">Free tries used — Sign up to continue</span>
                 )}
               </p>
             )}
           </div>
 
+          {/* Dynamic Content */}
           <AnimatePresence mode="wait">
-            {status === "idle" && (
-              <ScanInput
-                key="input"
-                onScan={handleScan}
-                isLoading={false}
+            {status === 'idle' && (
+              <ScanInput 
+                key="input" 
+                onScan={handleScan} 
+                isLoading={false} 
                 disabled={isScanDisabled}
                 onDisabledClick={() => setShowGuestLimit(true)}
               />
             )}
-
-            {status === "scanning" && <ScanProgress key="progress" step={progressStep} />}
-
-            {status === "complete" && result && (
-              <ScanResults
-                key="results"
-                result={result}
+            
+            {status === 'scanning' && (
+              <ScanProgress key="progress" step={progressStep} />
+            )}
+            
+            {status === 'complete' && result && (
+              <ScanResults 
+                key="results" 
+                result={result} 
                 onScanAnother={handleScanAnother}
                 persona={currentPersona}
                 onPersonaChange={handlePersonaChange}
                 isLoadingPersona={isRescanningPersona}
               />
             )}
-
-            {status === "error" && (
-              <ScanInput
-                key="input-error"
-                onScan={handleScan}
+            
+            {status === 'error' && (
+              <ScanInput 
+                key="input-error" 
+                onScan={handleScan} 
                 isLoading={false}
                 disabled={isScanDisabled}
                 onDisabledClick={() => setShowGuestLimit(true)}
@@ -305,9 +287,16 @@ export default function WebsiteRiskScan() {
         </div>
       </AnimatedSection>
 
-      <PaywallDialog open={showPaywall} onOpenChange={setShowPaywall} scanCount={scanCount} />
+      <PaywallDialog 
+        open={showPaywall} 
+        onOpenChange={setShowPaywall} 
+        scanCount={scanCount}
+      />
 
-      <GuestLimitModal open={showGuestLimit} onOpenChange={setShowGuestLimit} />
+      <GuestLimitModal
+        open={showGuestLimit}
+        onOpenChange={setShowGuestLimit}
+      />
     </>
   );
 }

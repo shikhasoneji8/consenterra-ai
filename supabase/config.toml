@@ -1,7 +1,13 @@
-project_id = "hclsesnrhxvbxbnhxery"
+project_id = "gijcgculokmkbjlxstxx"
 
 [functions.website-scan]
 verify_jwt = false
 
 [functions.send-application-notification]
+verify_jwt = false
+
+[functions.generate-investor-panel]
+verify_jwt = false
+
+[functions.generate-deal-ui]
 verify_jwt = false

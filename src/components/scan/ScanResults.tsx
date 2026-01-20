@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { 
   Shield, AlertTriangle, CheckCircle, Eye, Fingerprint, 
@@ -12,20 +13,20 @@ import {
 } from "@/components/ui/accordion";
 import { toast } from "sonner";
 import type { ScanResult } from "@/types/scan";
+import { useAuth } from "@/hooks/useAuth";
+import PersonaToggle, { type PersonaType } from "./PersonaToggle";
+import ConfidenceMeter from "./ConfidenceMeter";
+import SeverityBadge from "./SeverityBadge";
+import ResponsibleAIBanner from "./ResponsibleAIBanner";
+import UpgradePrompt from "./UpgradePrompt";
 
 interface ScanResultsProps {
   result: ScanResult;
   onScanAnother: () => void;
+  persona: PersonaType;
+  onPersonaChange: (persona: PersonaType) => void;
+  isLoadingPersona?: boolean;
 }
-
-const getSeverityIcon = (severity: string) => {
-  switch (severity) {
-    case 'green': return '🟢';
-    case 'yellow': return '🟡';
-    case 'red': return '🔴';
-    default: return '⚪';
-  }
-};
 
 const getRiskLevelColor = (level: string) => {
   switch (level) {
@@ -42,7 +43,8 @@ const getScoreColor = (score: number) => {
   return 'text-red-400';
 };
 
-export default function ScanResults({ result, onScanAnother }: ScanResultsProps) {
+export default function ScanResults({ result, onScanAnother, persona, onPersonaChange, isLoadingPersona }: ScanResultsProps) {
+  const { user } = useAuth();
   const riskColors = getRiskLevelColor(result.risk_level);
 
   const handleCopySummary = async () => {
@@ -71,8 +73,22 @@ ${result.actions.map(a => `• ${a.title}: ${a.text}`).join('\n')}
       transition={{ duration: 0.5 }}
       className="w-full max-w-3xl mx-auto space-y-6"
     >
+      {/* Persona Toggle & Confidence */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <PersonaToggle value={persona} onChange={onPersonaChange} disabled={isLoadingPersona} />
+        <div className="flex items-center gap-3">
+          {isLoadingPersona && (
+            <span className="text-sm text-muted-foreground animate-pulse">Updating analysis...</span>
+          )}
+          <ConfidenceMeter level={result.confidence} />
+        </div>
+      </div>
+
       {/* Top Summary Card */}
-      <div 
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.1 }}
         className="p-6 md:p-8 rounded-2xl"
         style={{
           background: 'linear-gradient(145deg, hsl(var(--surface-2)) 0%, hsl(var(--surface-1)) 100%)',
@@ -82,30 +98,38 @@ ${result.actions.map(a => `• ${a.title}: ${a.text}`).join('\n')}
       >
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
           <div>
-            <p className="text-sm text-muted-foreground mb-1">Results for</p>
+            <p className="text-sm text-muted-foreground mb-1">What this policy really means for you</p>
             <h3 className="text-2xl font-bold text-foreground">{result.domain}</h3>
           </div>
           
           <div className="flex items-center gap-4">
-            {/* Score */}
-            <div className="text-center">
+            <motion.div 
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", delay: 0.2 }}
+              className="text-center"
+            >
               <p className="text-sm text-muted-foreground mb-1">Trust Score</p>
               <p className={`text-4xl font-bold ${getScoreColor(result.score)}`}>
                 {result.score}<span className="text-lg text-muted-foreground">/100</span>
               </p>
-            </div>
+            </motion.div>
             
-            {/* Risk Level Pill */}
-            <div className={`px-4 py-2 rounded-xl ${riskColors.bg} ${riskColors.border} border`}>
+            <motion.div 
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", delay: 0.3 }}
+              className={`px-4 py-2 rounded-xl ${riskColors.bg} ${riskColors.border} border`}
+            >
               <p className={`text-lg font-semibold ${riskColors.text}`}>{result.risk_level} Risk</p>
-            </div>
+            </motion.div>
           </div>
         </div>
         
         <p className="text-lg text-foreground/90 leading-relaxed">{result.summary}</p>
-      </div>
+      </motion.div>
 
-      {/* Immediate Risks */}
+      {/* Hidden Risks */}
       <div 
         className="p-6 rounded-2xl"
         style={{
@@ -115,7 +139,7 @@ ${result.actions.map(a => `• ${a.title}: ${a.text}`).join('\n')}
       >
         <div className="flex items-center gap-3 mb-4">
           <AlertTriangle className="h-5 w-5 text-yellow-400" />
-          <h4 className="text-lg font-semibold text-foreground">Immediate Risks</h4>
+          <h4 className="text-lg font-semibold text-foreground">Hidden risks you might miss</h4>
         </div>
         
         <ul className="space-y-3">
@@ -124,11 +148,11 @@ ${result.actions.map(a => `• ${a.title}: ${a.text}`).join('\n')}
               key={index}
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="flex items-start gap-3 p-3 rounded-xl bg-background/50"
+              transition={{ delay: 0.1 + index * 0.1 }}
+              className="flex items-start gap-3 p-3 rounded-xl bg-background/50 hover:bg-background/70 transition-colors"
             >
-              <span className="text-lg mt-0.5">{getSeverityIcon(risk.severity)}</span>
-              <span className="text-foreground/90">{risk.text}</span>
+              <SeverityBadge severity={risk.severity} />
+              <span className="text-foreground/90 flex-1">{risk.text}</span>
             </motion.li>
           ))}
         </ul>
@@ -144,16 +168,22 @@ ${result.actions.map(a => `• ${a.title}: ${a.text}`).join('\n')}
       >
         <div className="flex items-center gap-3 mb-4">
           <Eye className="h-5 w-5 text-primary" />
-          <h4 className="text-lg font-semibold text-foreground">Dark Patterns</h4>
+          <h4 className="text-lg font-semibold text-foreground">Where this policy crosses the line</h4>
         </div>
         
         {result.dark_patterns.detected ? (
           <ul className="space-y-3">
             {result.dark_patterns.items.map((pattern, index) => (
-              <li key={index} className="p-4 rounded-xl bg-red-500/10 border border-red-500/20">
+              <motion.li 
+                key={index} 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: index * 0.1 }}
+                className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 hover:border-red-500/40 transition-colors"
+              >
                 <p className="font-semibold text-red-400 mb-1">{pattern.type}</p>
                 <p className="text-sm text-muted-foreground">{pattern.evidence}</p>
-              </li>
+              </motion.li>
             ))}
           </ul>
         ) : (
@@ -174,22 +204,23 @@ ${result.actions.map(a => `• ${a.title}: ${a.text}`).join('\n')}
       >
         <div className="flex items-center gap-3 mb-4">
           <Fingerprint className="h-5 w-5 text-accent" />
-          <h4 className="text-lg font-semibold text-foreground">Digital Footprint</h4>
+          <h4 className="text-lg font-semibold text-foreground">Your Digital Footprint</h4>
         </div>
         
-        {/* Chips */}
         <div className="flex flex-wrap gap-2 mb-4">
           {result.digital_footprint.chips.map((chip, index) => (
-            <span 
+            <motion.span 
               key={index}
-              className="px-3 py-1.5 rounded-full text-sm font-medium bg-primary/20 text-primary border border-primary/30"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: index * 0.05 }}
+              className="px-3 py-1.5 rounded-full text-sm font-medium bg-primary/20 text-primary border border-primary/30 hover:bg-primary/30 transition-colors cursor-default"
             >
               {chip}
-            </span>
+            </motion.span>
           ))}
         </div>
         
-        {/* Details */}
         <div className="space-y-3 mb-4">
           {result.digital_footprint.details.map((detail, index) => (
             <div key={index} className="p-3 rounded-lg bg-background/50">
@@ -199,7 +230,6 @@ ${result.actions.map(a => `• ${a.title}: ${a.text}`).join('\n')}
           ))}
         </div>
         
-        {/* Disclaimer */}
         <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/50 border border-border/50">
           <Info className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
           <p className="text-xs text-muted-foreground italic">{result.digital_footprint.note}</p>
@@ -226,7 +256,8 @@ ${result.actions.map(a => `• ${a.title}: ${a.text}`).join('\n')}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="p-4 rounded-xl bg-background/50 border border-border/50 hover:border-primary/30 transition-colors"
+              whileHover={{ scale: 1.02 }}
+              className="p-4 rounded-xl bg-background/50 border border-border/50 hover:border-primary/30 transition-all cursor-default"
             >
               <p className="font-semibold text-foreground mb-1">{action.title}</p>
               <p className="text-sm text-muted-foreground">{action.text}</p>
@@ -253,16 +284,6 @@ ${result.actions.map(a => `• ${a.title}: ${a.text}`).join('\n')}
           </AccordionTrigger>
           <AccordionContent className="px-6 pb-6">
             <div className="space-y-4">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground mb-2">Confidence Rating</p>
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  result.confidence === 'High' ? 'bg-green-500/20 text-green-400' :
-                  result.confidence === 'Medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                  'bg-red-500/20 text-red-400'
-                }`}>
-                  {result.confidence}
-                </span>
-              </div>
               <p className="text-sm text-muted-foreground">
                 This analysis is based on visible page signals including meta tags, scripts, consent patterns, 
                 and common tracking indicators. For a complete picture, always review the site's full privacy policy.
@@ -272,8 +293,14 @@ ${result.actions.map(a => `• ${a.title}: ${a.text}`).join('\n')}
         </AccordionItem>
       </Accordion>
 
+      {/* Responsible AI Banner */}
+      <ResponsibleAIBanner />
+
+      {/* Smart Upgrade Prompt */}
+      {!user && <UpgradePrompt isGuest={true} />}
+
       {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row gap-3 justify-center">
+      <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
         <Button onClick={handleCopySummary} variant="outline" className="gap-2">
           <Copy className="h-4 w-4" />
           Copy Summary

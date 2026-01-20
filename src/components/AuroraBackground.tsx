@@ -15,7 +15,8 @@ export default function AuroraBackground({ showParticles = true }: { showParticl
 
   useEffect(() => {
     if (!showParticles) return;
-
+    
+    // Generate random particles
     const newParticles: Particle[] = Array.from({ length: 20 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
@@ -28,76 +29,72 @@ export default function AuroraBackground({ showParticles = true }: { showParticl
   }, [showParticles]);
 
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-      {/* Always-on purple wash */}
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-950/40 via-violet-950/20 to-slate-950/60" />
-
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
       {/* Aurora gradient blobs */}
       <motion.div
         className="absolute -top-1/2 -left-1/4 w-[150%] h-[150%]"
         animate={{
-          rotate: [0, 2, -2, 2, 0],
-          scale: [1, 1.03, 0.99, 1.02, 1],
-          x: [0, 12, -10, 8, 0],
-          y: [0, 8, -6, 10, 0],
+          rotate: [0, 5, -3, 5, 0],
+          scale: [1, 1.05, 0.98, 1.03, 1],
+          x: [0, 30, -20, 10, 0],
+          y: [0, 20, -15, 25, 0],
         }}
         transition={{
-          duration: 26,
+          duration: 25,
           repeat: Infinity,
           ease: "easeInOut",
         }}
       >
-        <div className="absolute top-1/4 left-1/4 w-[700px] h-[700px] rounded-full bg-[hsl(270_90%_65%/0.22)] blur-[140px]" />
-        <div className="absolute top-1/2 right-1/4 w-[600px] h-[600px] rounded-full bg-[hsl(285_85%_60%/0.18)] blur-[130px]" />
-        <div className="absolute bottom-1/4 left-1/3 w-[520px] h-[520px] rounded-full bg-[hsl(255_95%_70%/0.16)] blur-[150px]" />
+        <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] rounded-full bg-[hsl(270_80%_60%/0.12)] blur-[120px]" />
+        <div className="absolute top-1/2 right-1/4 w-[500px] h-[500px] rounded-full bg-[hsl(280_70%_55%/0.1)] blur-[100px]" />
+        <div className="absolute bottom-1/4 left-1/3 w-[450px] h-[450px] rounded-full bg-[hsl(260_90%_70%/0.08)] blur-[110px]" />
       </motion.div>
 
       {/* Secondary aurora layer for depth */}
       <motion.div
         className="absolute -top-1/4 -right-1/4 w-[150%] h-[150%]"
         animate={{
-          rotate: [0, -2, 2, -2, 0],
-          scale: [1, 0.99, 1.03, 0.99, 1],
-          x: [0, -10, 8, -12, 0],
-          y: [0, 7, -9, 6, 0],
+          rotate: [0, -3, 4, -2, 0],
+          scale: [1, 0.98, 1.04, 0.99, 1],
+          x: [0, -20, 15, -25, 0],
+          y: [0, 15, -20, 10, 0],
         }}
         transition={{
-          duration: 32,
+          duration: 30,
           repeat: Infinity,
           ease: "easeInOut",
-          delay: 1.5,
+          delay: 2,
         }}
       >
-        <div className="absolute top-1/3 right-1/4 w-[520px] h-[520px] rounded-full bg-[hsl(295_70%_55%/0.14)] blur-[120px]" />
-        <div className="absolute bottom-1/3 left-1/2 w-[450px] h-[450px] rounded-full bg-[hsl(250_80%_65%/0.12)] blur-[110px]" />
+        <div className="absolute top-1/3 right-1/4 w-[400px] h-[400px] rounded-full bg-[hsl(290_60%_50%/0.08)] blur-[90px]" />
+        <div className="absolute bottom-1/3 left-1/2 w-[350px] h-[350px] rounded-full bg-[hsl(250_70%_60%/0.06)] blur-[80px]" />
       </motion.div>
 
       {/* Floating particles */}
-      {showParticles &&
-        particles.map((particle) => (
-          <motion.div
-            key={particle.id}
-            className="absolute rounded-full bg-[hsl(270_70%_70%)]"
-            style={{
-              left: `${particle.x}%`,
-              top: `${particle.y}%`,
-              width: particle.size,
-              height: particle.size,
-            }}
-            animate={{
-              y: [0, -40, -20, -60, 0],
-              x: [0, 15, -10, 20, 0],
-              opacity: [0.12, 0.28, 0.18, 0.32, 0.12],
-              scale: [1, 1.25, 0.95, 1.15, 1],
-            }}
-            transition={{
-              duration: particle.duration,
-              repeat: Infinity,
-              delay: particle.delay,
-              ease: "easeInOut",
-            }}
-          />
-        ))}
+      {showParticles && particles.map((particle) => (
+        <motion.div
+          key={particle.id}
+          className="absolute rounded-full bg-[hsl(270_70%_70%)]"
+          style={{
+            left: `${particle.x}%`,
+            top: `${particle.y}%`,
+            width: particle.size,
+            height: particle.size,
+          }}
+          animate={{
+            y: [0, -40, -20, -60, 0],
+            x: [0, 15, -10, 20, 0],
+            opacity: [0.15, 0.35, 0.2, 0.4, 0.15],
+            scale: [1, 1.3, 0.9, 1.2, 1],
+          }}
+          transition={{
+            duration: particle.duration,
+            repeat: Infinity,
+            delay: particle.delay,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
     </div>
   );
 }

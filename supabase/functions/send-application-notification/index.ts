@@ -3,8 +3,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "https://www.consenterra.ai", // keep "*" only for testing
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
@@ -18,11 +17,10 @@ interface ApplicationNotificationRequest {
   cover_letter?: string;
 }
 
-
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
-    return new Response("ok", { status: 200, headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
@@ -77,7 +75,7 @@ const handler = async (req: Request): Promise<Response> => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "ConsenTerra Careers <shikha@consenterra.ai>",
+        from: "ConsenTerra Careers <careers@consenterra.ai>",
         to: recipients,
         subject: `New Application: ${role} - ${full_name}`,
         html: emailHtml,

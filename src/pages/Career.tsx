@@ -154,27 +154,21 @@ export default function Career() {
 
       // Send email notification to team
       try {
-        const { data, error } = await supabase.functions.invoke(
-          "send-application-notification",
-          {
-            body: {
-              fullName: formData.fullName,
-              email: formData.email,
-              phone: formData.phone || null,
-              role: formData.role,
-              linkedinUrl: formData.linkedinUrl || null,
-              portfolioUrl: formData.portfolioUrl || null,
-              coverLetter: formData.coverLetter || null,
-              resumeFileName: resumeFile?.name || null,
-            },
-          }
-        );
-      
-        if (error) {
-          console.error("Failed to send notification email:", error);
-        }
-      } catch (e) {
-        console.error("Failed to send notification email (thrown):", e);
+        await supabase.functions.invoke("send-application-notification", {
+          body: {
+            full_name: formData.fullName,
+            email: formData.email,
+            phone: formData.phone || null,
+            role: formData.role,
+            linkedin_url: formData.linkedinUrl || null,
+            portfolio_url: formData.portfolioUrl || null,
+            cover_letter: formData.coverLetter || null,
+            resume_file_name: resumeFile.name,
+          },
+        });
+      } catch (emailError) {
+        // Log but don't fail the submission if email fails
+        console.error("Failed to send notification email:", emailError);
       }
 
       setSubmitted(true);

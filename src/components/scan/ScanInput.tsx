@@ -1,5 +1,4 @@
 import { useState } from "react";
-// import { Search, Sparkles } from "lucide-react";
 import { Search, Sparkles, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,12 +11,7 @@ interface ScanInputProps {
   onDisabledClick?: () => void;
 }
 
-export default function ScanInput({
-  onScan,
-  isLoading,
-  disabled = false,
-  onDisabledClick,
-}: ScanInputProps) {
+export default function ScanInput({ onScan, isLoading, disabled = false, onDisabledClick }: ScanInputProps) {
   const [url, setUrl] = useState("");
   const [error, setError] = useState("");
 
@@ -38,18 +32,17 @@ export default function ScanInput({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-  
+    
     if (disabled) {
       onDisabledClick?.();
       return;
     }
-  
+    
     const validationError = validateUrl(url);
     if (validationError) {
       setError(validationError);
       return;
     }
-  
     setError("");
     onScan(url.trim());
   };
@@ -110,9 +103,7 @@ export default function ScanInput({
               onClick={handleButtonClick}
               variant={disabled ? "secondary" : "glow"}
               size="lg"
-              className={`h-14 px-8 text-lg font-semibold whitespace-nowrap ${
-                disabled ? "opacity-75 cursor-not-allowed" : "spark-hover"
-              }`}
+              className={`h-14 px-8 text-lg font-semibold whitespace-nowrap ${disabled ? 'opacity-75 cursor-not-allowed' : 'spark-hover'}`}
             >
               {disabled ? (
                 <>
@@ -133,28 +124,20 @@ export default function ScanInput({
               {error}
             </p>
           )}
+
           {disabled && (
             <p className="text-sm text-center text-muted-foreground">
-              You've used your 2 free scans.{" "}
-              <button
-                type="button"
-                onClick={onDisabledClick}
-                className="text-primary hover:underline font-medium"
-              >
-                Sign up to continue
-              </button>
+              You've used your 2 free scans. <button type="button" onClick={onDisabledClick} className="text-primary hover:underline font-medium">Sign up to continue</button>
             </p>
           )}
         </form>
 
         <div className="mt-4 flex justify-center">
-        <button
-          onClick={handleDemoScan}
-          disabled={isLoading}
-          className={`text-sm text-muted-foreground hover:text-primary transition-colors underline underline-offset-4 ${
-            disabled ? "opacity-50 cursor-not-allowed" : ""
-          }`}
-        >
+          <button
+            onClick={handleDemoScan}
+            disabled={isLoading}
+            className={`text-sm text-muted-foreground hover:text-primary transition-colors underline underline-offset-4 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
             Try a demo scan
           </button>
         </div>

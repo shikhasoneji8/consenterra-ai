@@ -17,12 +17,16 @@ import Career from "./pages/Career";
 import Contact from "./pages/Contact";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-import NotFound from "./pages/NotFound";
 import Pricing from "./pages/Pricing";
 import Roadmap from "./pages/Roadmap";
 import Changelog from "./pages/Changelog";
 import Research from "./pages/Research";
-import ChromePrivacy from "./pages/chrome-privacy"; // adjust path to match your project
+import NotFound from "./pages/NotFound";
+import NewPitch from "./pages/foundrfate/NewPitch";
+import Panel from "./pages/foundrfate/Panel";
+import Deal from "./pages/foundrfate/Deal";
+import Success from "./pages/foundrfate/Success";
+import History from "./pages/foundrfate/History";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +44,11 @@ const App = () => (
               <Route path="/solutions" element={<Solutions />} />
               <Route path="/solutions/prixplainer" element={<PriXplainer />} />
               <Route path="/solutions/foundrfate" element={<FoundrFATE />} />
+              <Route path="/solutions/foundrfate/new" element={<NewPitch />} />
+              <Route path="/solutions/foundrfate/panel/:panelId" element={<Panel />} />
+              <Route path="/solutions/foundrfate/deal/:dealId" element={<Deal />} />
+              <Route path="/solutions/foundrfate/success/:dealId" element={<Success />} />
+              <Route path="/solutions/foundrfate/history" element={<History />} />
               <Route path="/solutions/trusteartthy" element={<TrustEarthy />} />
               <Route path="/extension" element={<Extension />} />
               <Route path="/privacy" element={<Privacy />} />
@@ -51,7 +60,6 @@ const App = () => (
               <Route path="/roadmap" element={<Roadmap />} />
               <Route path="/changelog" element={<Changelog />} />
               <Route path="/research" element={<Research />} />
-              <Route path="/chrome-privacy" element={<ChromePrivacy />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
