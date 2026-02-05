@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, Shield, Leaf, CheckCircle, Sparkles, ArrowRight, Chrome, HelpCircle } from "lucide-react";
+import { ChevronDown, Shield, Rocket, Leaf, CheckCircle, Sparkles, ArrowRight, Chrome, HelpCircle } from "lucide-react";
 import logo from "@/assets/ConsenTerra_Logo.png";
 import AuroraBackground from "@/components/AuroraBackground";
 import AnimatedSection from "@/components/AnimatedSection";
@@ -18,7 +18,7 @@ import {
 const faqs = [
   {
     question: "What is ConsenTerra?",
-    answer: "ConsenTerra is a company that builds AI-powered tools to help people understand complex information and make better decisions in areas like digital privacy and sustainable living."
+    answer: "ConsenTerra is a company that builds AI-powered tools to help people understand complex information and make better decisions in areas like digital privacy, entrepreneurship, and sustainable living."
   },
   {
     question: "How does PriXplainer work?",
@@ -33,8 +33,8 @@ const faqs = [
     answer: "We practice what we preach. For privacy scans, we only send the website domain name for analysis—we never collect your browsing history, personal information, or form inputs. Your privacy is our priority."
   },
   {
-    question: "What is TrustEarthy?",
-    answer: "TrustEarthy helps users make sustainable consumption choices through trusted product comparisons and habit-friendly recommendations. It's currently in development."
+    question: "What are FoundrFATE and TrustEarthy?",
+    answer: "FoundrFATE helps early-stage founders understand fundraising and investor dynamics with plain-language guidance. TrustEarthy helps users make sustainable consumption choices through trusted product comparisons and habit-friendly recommendations. Both are currently in development."
   },
   {
     question: "How can I get in touch or provide feedback?",
@@ -56,6 +56,21 @@ const solutions = [
     icon: Shield,
     href: "/solutions/prixplainer",
     color: "text-primary"
+  },
+  {
+    id: "foundrfate",
+    name: "FoundrFATE",
+    tagline: "Founder success shouldn't feel like luck.",
+    description: "FoundrFATE helps early-stage founders understand the forces shaping their journey—before those forces decide for them.",
+    capabilities: [
+      "Funding readiness assessment",
+      "Investor education & outreach guidance",
+      "Plain-language fundraising explanations",
+      "Founder-first, bias-aware design"
+    ],
+    icon: Rocket,
+    href: "/solutions/foundrfate",
+    color: "text-ocean"
   },
   {
     id: "trustearthy",

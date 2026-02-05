@@ -7,11 +7,48 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
   public: {
     Tables: {
+      deals: {
+        Row: {
+          checkout_url: string | null
+          created_at: string
+          deal_terms: Json
+          id: string
+          panel_id: string
+          status: Database["public"]["Enums"]["deal_status"]
+        }
+        Insert: {
+          checkout_url?: string | null
+          created_at?: string
+          deal_terms?: Json
+          id?: string
+          panel_id: string
+          status?: Database["public"]["Enums"]["deal_status"]
+        }
+        Update: {
+          checkout_url?: string | null
+          created_at?: string
+          deal_terms?: Json
+          id?: string
+          panel_id?: string
+          status?: Database["public"]["Enums"]["deal_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deals_panel_id_fkey"
+            columns: ["panel_id"]
+            isOneToOne: false
+            referencedRelation: "panels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_applications: {
         Row: {
           cover_letter: string | null
@@ -75,52 +112,111 @@ export type Database = {
         }
         Relationships: []
       }
+      panels: {
+        Row: {
+          created_at: string
+          id: string
+          offers: Json
+          personas: Json
+          pitch_id: string
+          questions: Json
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          offers?: Json
+          personas?: Json
+          pitch_id: string
+          questions?: Json
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          offers?: Json
+          personas?: Json
+          pitch_id?: string
+          questions?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "panels_pitch_id_fkey"
+            columns: ["pitch_id"]
+            isOneToOne: false
+            referencedRelation: "pitches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pitches: {
+        Row: {
+          arr: number | null
+          ask_amount: number
+          created_at: string
+          equity_percent: number
+          id: string
+          mrr: number | null
+          parsed_json: Json | null
+          raw_pitch_text: string
+          stage: Database["public"]["Enums"]["pitch_stage"] | null
+          startup_name: string | null
+          user_id: string | null
+        }
+        Insert: {
+          arr?: number | null
+          ask_amount: number
+          created_at?: string
+          equity_percent: number
+          id?: string
+          mrr?: number | null
+          parsed_json?: Json | null
+          raw_pitch_text: string
+          stage?: Database["public"]["Enums"]["pitch_stage"] | null
+          startup_name?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          arr?: number | null
+          ask_amount?: number
+          created_at?: string
+          equity_percent?: number
+          id?: string
+          mrr?: number | null
+          parsed_json?: Json | null
+          raw_pitch_text?: string
+          stage?: Database["public"]["Enums"]["pitch_stage"] | null
+          startup_name?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
-          company: string | null
-          country: string | null
           created_at: string
           email: string | null
-          email_verified: boolean
-          email_verified_at: string | null
           full_name: string | null
           id: string
           last_login_at: string | null
-          location: string | null
-          onboarding_completed: boolean
           updated_at: string
           user_id: string
         }
         Insert: {
           avatar_url?: string | null
-          company?: string | null
-          country?: string | null
           created_at?: string
           email?: string | null
-          email_verified?: boolean
-          email_verified_at?: string | null
           full_name?: string | null
           id?: string
           last_login_at?: string | null
-          location?: string | null
-          onboarding_completed?: boolean
           updated_at?: string
           user_id: string
         }
         Update: {
           avatar_url?: string | null
-          company?: string | null
-          country?: string | null
           created_at?: string
           email?: string | null
-          email_verified?: boolean
-          email_verified_at?: string | null
           full_name?: string | null
           id?: string
           last_login_at?: string | null
-          location?: string | null
-          onboarding_completed?: boolean
           updated_at?: string
           user_id?: string
         }
@@ -128,164 +224,65 @@ export type Database = {
       }
       scan_history: {
         Row: {
-          created_at: string
-          domain: string | null
           findings: Json | null
           id: string
-          persona: string
-          risk_level: string | null
-          risk_score: number | null
+          risk_level: string
+          risk_score: number
+          scanned_at: string
           summary: string | null
           url: string
           user_id: string
         }
         Insert: {
-          created_at?: string
-          domain?: string | null
           findings?: Json | null
           id?: string
-          persona?: string
-          risk_level?: string | null
-          risk_score?: number | null
+          risk_level: string
+          risk_score: number
+          scanned_at?: string
           summary?: string | null
           url: string
           user_id: string
         }
         Update: {
-          created_at?: string
-          domain?: string | null
           findings?: Json | null
           id?: string
-          persona?: string
-          risk_level?: string | null
-          risk_score?: number | null
+          risk_level?: string
+          risk_score?: number
+          scanned_at?: string
           summary?: string | null
           url?: string
           user_id?: string
         }
         Relationships: []
       }
-      subscriptions: {
+      user_subscriptions: {
         Row: {
-          canceled_at: string | null
           created_at: string
-          current_period_end: string | null
-          current_period_start: string | null
+          expires_at: string | null
           id: string
-          plan: Database["public"]["Enums"]["subscription_plan"]
-          scans_limit: number
-          scans_used: number
-          status: Database["public"]["Enums"]["subscription_status"]
-          stripe_customer_id: string | null
-          stripe_subscription_id: string | null
-          trial_end: string | null
-          trial_start: string | null
+          plan: string
+          price_monthly: number | null
+          status: string
           updated_at: string
           user_id: string
         }
         Insert: {
-          canceled_at?: string | null
           created_at?: string
-          current_period_end?: string | null
-          current_period_start?: string | null
+          expires_at?: string | null
           id?: string
-          plan?: Database["public"]["Enums"]["subscription_plan"]
-          scans_limit?: number
-          scans_used?: number
-          status?: Database["public"]["Enums"]["subscription_status"]
-          stripe_customer_id?: string | null
-          stripe_subscription_id?: string | null
-          trial_end?: string | null
-          trial_start?: string | null
+          plan?: string
+          price_monthly?: number | null
+          status?: string
           updated_at?: string
           user_id: string
         }
         Update: {
-          canceled_at?: string | null
           created_at?: string
-          current_period_end?: string | null
-          current_period_start?: string | null
+          expires_at?: string | null
           id?: string
-          plan?: Database["public"]["Enums"]["subscription_plan"]
-          scans_limit?: number
-          scans_used?: number
-          status?: Database["public"]["Enums"]["subscription_status"]
-          stripe_customer_id?: string | null
-          stripe_subscription_id?: string | null
-          trial_end?: string | null
-          trial_start?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      user_activity: {
-        Row: {
-          activity_data: Json
-          activity_type: string
-          created_at: string
-          id: string
-          ip_address: string | null
-          page_url: string | null
-          user_agent: string | null
-          user_id: string
-        }
-        Insert: {
-          activity_data?: Json
-          activity_type: string
-          created_at?: string
-          id?: string
-          ip_address?: string | null
-          page_url?: string | null
-          user_agent?: string | null
-          user_id: string
-        }
-        Update: {
-          activity_data?: Json
-          activity_type?: string
-          created_at?: string
-          id?: string
-          ip_address?: string | null
-          page_url?: string | null
-          user_agent?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      user_preferences: {
-        Row: {
-          analytics_enabled: boolean
-          created_at: string
-          email_notifications: boolean
-          id: string
-          language: string
-          marketing_emails: boolean
-          product_updates: boolean
-          theme: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          analytics_enabled?: boolean
-          created_at?: string
-          email_notifications?: boolean
-          id?: string
-          language?: string
-          marketing_emails?: boolean
-          product_updates?: boolean
-          theme?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          analytics_enabled?: boolean
-          created_at?: string
-          email_notifications?: boolean
-          id?: string
-          language?: string
-          marketing_emails?: boolean
-          product_updates?: boolean
-          theme?: string
+          plan?: string
+          price_monthly?: number | null
+          status?: string
           updated_at?: string
           user_id?: string
         }
@@ -299,8 +296,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      subscription_plan: "free" | "starter" | "pro" | "enterprise"
-      subscription_status: "free" | "trial" | "active" | "past_due" | "canceled" | "expired"
+      deal_status: "draft" | "accepted" | "declined" | "paid"
+      pitch_stage: "mvp" | "pre_seed" | "seed" | "growth"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -428,8 +425,8 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      subscription_plan: ["free", "starter", "pro", "enterprise"],
-      subscription_status: ["free", "trial", "active", "past_due", "canceled", "expired"],
+      deal_status: ["draft", "accepted", "declined", "paid"],
+      pitch_stage: ["mvp", "pre_seed", "seed", "growth"],
     },
   },
 } as const

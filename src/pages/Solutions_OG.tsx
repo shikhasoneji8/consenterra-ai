@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Shield, Leaf, ArrowRight } from "lucide-react";
+import { Shield, Rocket, Leaf, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const solutions = [
@@ -16,6 +16,20 @@ const solutions = [
     ],
     href: "/solutions/prixplainer",
     color: "from-primary to-forest-light",
+  },
+  {
+    icon: Rocket,
+    name: "FoundrFATE",
+    tagline: "Founder success shouldn't feel like luck.",
+    description: "FoundrFATE helps early-stage founders understand the forces shaping their journey—before those forces decide for them.",
+    capabilities: [
+      "Funding readiness assessment",
+      "Investor education & outreach guidance",
+      "Plain-language fundraising explanations",
+      "Founder-first, bias-aware design",
+    ],
+    href: "/solutions/foundrfate",
+    color: "from-ocean to-primary",
   },
   {
     icon: Leaf,

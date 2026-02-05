@@ -19,6 +19,11 @@ const solutions = [
     href: "/solutions/prixplainer",
   },
   {
+    title: "FoundrFATE",
+    description: "Founder success shouldn't feel like luck.",
+    href: "/solutions/foundrfate",
+  },
+  {
     title: "TrustEarthy",
     description: "Small swaps. Real impact.",
     href: "/solutions/trusteartthy",

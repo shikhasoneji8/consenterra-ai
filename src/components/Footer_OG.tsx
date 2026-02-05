@@ -21,6 +21,7 @@ const footerLinks = {
   ],
   solutions: [
     { name: "PriXplainer", href: "/solutions/prixplainer" },
+    { name: "FoundrFATE", href: "/solutions/foundrfate" },
     { name: "TrustEarthy", href: "/solutions/trusteartthy" },
   ],
   legal: [

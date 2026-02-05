@@ -5,29 +5,28 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import Layout from "./components/Layout";
-import ProtectedRoute from "./components/ProtectedRoute";
-
-// Public pages
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Solutions from "./pages/Solutions";
+import PriXplainer from "./pages/solutions/PriXplainer";
+import FoundrFATE from "./pages/solutions/FoundrFATE";
+import TrustEarthy from "./pages/solutions/TrustEarthy";
 import Extension from "./pages/Extension";
 import Privacy from "./pages/Privacy";
 import Career from "./pages/Career";
 import Contact from "./pages/Contact";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-import ResetPassword from "./pages/ResetPassword";
+import Pricing from "./pages/Pricing";
 import Roadmap from "./pages/Roadmap";
 import Changelog from "./pages/Changelog";
 import Research from "./pages/Research";
 import NotFound from "./pages/NotFound";
-
-// Protected pages
-import PriXplainer from "./pages/solutions/PriXplainer";
-import TrustEarthy from "./pages/solutions/TrustEarthy";
-import Profile from "./pages/Profile";
-import Pricing from "./pages/Pricing";
+import NewPitch from "./pages/foundrfate/NewPitch";
+import Panel from "./pages/foundrfate/Panel";
+import Deal from "./pages/foundrfate/Deal";
+import Success from "./pages/foundrfate/Success";
+import History from "./pages/foundrfate/History";
 
 const queryClient = new QueryClient();
 
@@ -40,56 +39,28 @@ const App = () => (
         <BrowserRouter>
           <Layout>
             <Routes>
-              {/* Public Routes */}
               <Route path="/" element={<Home />} />
               <Route path="/about" element={<About />} />
               <Route path="/solutions" element={<Solutions />} />
+              <Route path="/solutions/prixplainer" element={<PriXplainer />} />
+              <Route path="/solutions/foundrfate" element={<FoundrFATE />} />
+              <Route path="/solutions/foundrfate/new" element={<NewPitch />} />
+              <Route path="/solutions/foundrfate/panel/:panelId" element={<Panel />} />
+              <Route path="/solutions/foundrfate/deal/:dealId" element={<Deal />} />
+              <Route path="/solutions/foundrfate/success/:dealId" element={<Success />} />
+              <Route path="/solutions/foundrfate/history" element={<History />} />
+              <Route path="/solutions/trusteartthy" element={<TrustEarthy />} />
               <Route path="/extension" element={<Extension />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/career" element={<Career />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/pricing" element={<Pricing />} />
               <Route path="/roadmap" element={<Roadmap />} />
               <Route path="/changelog" element={<Changelog />} />
               <Route path="/research" element={<Research />} />
-              
-              {/* Protected Routes - Require Authentication */}
-              <Route 
-                path="/solutions/prixplainer" 
-                element={
-                  <ProtectedRoute>
-                    <PriXplainer />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/solutions/trusteartthy" 
-                element={
-                  <ProtectedRoute>
-                    <TrustEarthy />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/profile" 
-                element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/pricing" 
-                element={
-                  <ProtectedRoute>
-                    <Pricing />
-                  </ProtectedRoute>
-                } 
-              />
-              
-              {/* Catch-all Route */}
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Layout>

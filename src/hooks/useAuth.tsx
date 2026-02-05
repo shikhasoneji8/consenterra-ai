@@ -1,14 +1,19 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from "react";
-import { User, Session } from "@supabase/supabase-js";
+import { User, Session, Provider } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  isEmailVerified: boolean;
   signUp: (email: string, password: string, fullName?: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signInWithGoogle: () => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<{ error: Error | null }>;
+  updatePassword: (newPassword: string) => Promise<{ error: Error | null }>;
+  resendVerificationEmail: () => Promise<{ error: Error | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -17,6 +22,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Check if email is verified
+  const isEmailVerified = user?.email_confirmed_at !== null && user?.email_confirmed_at !== undefined;
 
   useEffect(() => {
     // Set up auth state listener BEFORE checking session
@@ -39,11 +47,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               // Update last_login_at in profiles
               await supabase.from('profiles').update({
                 last_login_at: new Date().toISOString(),
+                email_verified: session.user.email_confirmed_at !== null,
+                email_verified_at: session.user.email_confirmed_at,
               }).eq('user_id', session.user.id);
+
+              // Track activity
+              await supabase.from('user_activity').insert({
+                user_id: session.user.id,
+                activity_type: 'login',
+                user_agent: navigator.userAgent,
+                page_url: window.location.href,
+              });
             } catch (error) {
               console.error('Error tracking login:', error);
             }
           }, 0);
+        }
+
+        // Handle password recovery event
+        if (event === 'PASSWORD_RECOVERY') {
+          // User clicked the password reset link
+          console.log('Password recovery mode activated');
         }
       }
     );
@@ -64,7 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email,
         password,
         options: {
-          emailRedirectTo: window.location.origin,
+          emailRedirectTo: `${window.location.origin}/login?verified=true`,
           data: {
             full_name: fullName || '',
           }
@@ -88,12 +112,95 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const signInWithGoogle = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google' as Provider,
+        options: {
+          redirectTo: `${window.location.origin}/`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
+      });
+      return { error };
+    } catch (error) {
+      return { error: error as Error };
+    }
+  };
+
   const signOut = async () => {
+    // Track logout activity before signing out
+    if (user) {
+      try {
+        await supabase.from('user_activity').insert({
+          user_id: user.id,
+          activity_type: 'logout',
+          user_agent: navigator.userAgent,
+          page_url: window.location.href,
+        });
+      } catch (error) {
+        console.error('Error tracking logout:', error);
+      }
+    }
     await supabase.auth.signOut();
   };
 
+  const resetPassword = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      return { error };
+    } catch (error) {
+      return { error: error as Error };
+    }
+  };
+
+  const updatePassword = async (newPassword: string) => {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+      return { error };
+    } catch (error) {
+      return { error: error as Error };
+    }
+  };
+
+  const resendVerificationEmail = async () => {
+    if (!user?.email) {
+      return { error: new Error('No email address found') };
+    }
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: user.email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/login?verified=true`,
+        },
+      });
+      return { error };
+    } catch (error) {
+      return { error: error as Error };
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      session, 
+      loading, 
+      isEmailVerified,
+      signUp, 
+      signIn, 
+      signInWithGoogle,
+      signOut,
+      resetPassword,
+      updatePassword,
+      resendVerificationEmail,
+    }}>
       {children}
     </AuthContext.Provider>
   );
