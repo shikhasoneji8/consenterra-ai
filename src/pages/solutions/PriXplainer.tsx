@@ -44,7 +44,7 @@ const features = [
 const useCases = [
   {
     title: "Everyday Users",
-    description: "Know what you're agreeing to before you hit 'Accept.'",
+    description: "Know what you're agreeing to before you hit "Accept."",
     icon: Sparkles,
   },
   {
@@ -191,15 +191,15 @@ export default function PriXplainer() {
       </AnimatedSection>
 
       {/* Try PriXplainer - FULL WIDTH IFRAME */}
-      <section id="try" className="py-14 md:py-20 bg-gradient-to-b from-background via-primary/5 to-background">
+      <section id="try" className="py-14 md:py-20">
         <div className="w-full px-4 md:px-8 lg:px-12 xl:px-16">
           {/* Header */}
           <div className="max-w-7xl mx-auto mb-6">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
                 <h2 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                    <Shield className="h-5 w-5 text-white" />
+                  <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+                    <Shield className="h-5 w-5 text-primary" />
                   </div>
                   Try PriXplainer
                 </h2>
@@ -218,36 +218,41 @@ export default function PriXplainer() {
             </div>
           </div>
 
-          {/* Iframe Container - Full Width */}
+          {/* Iframe Container - Full Width with Header Cropped */}
           <div className="max-w-[1600px] mx-auto">
-            <div className="relative rounded-2xl border border-border/60 bg-[#0b0b10] shadow-2xl shadow-primary/10 overflow-hidden">
-              {/* Ambient glow effects */}
-              <div className="pointer-events-none absolute inset-0 opacity-40">
-                <div className="absolute -top-32 left-1/4 h-64 w-[600px] rounded-full bg-primary/30 blur-[100px]" />
-                <div className="absolute -bottom-32 right-1/4 h-64 w-[600px] rounded-full bg-purple-500/20 blur-[100px]" />
+            <div className="relative rounded-2xl border border-border/40 bg-[#0b0b10] overflow-hidden">
+              {/* Subtle ambient glow - MUCH softer purple */}
+              <div className="pointer-events-none absolute inset-0 opacity-20">
+                <div className="absolute -top-40 left-1/3 h-80 w-[500px] rounded-full bg-primary/20 blur-[120px]" />
+                <div className="absolute -bottom-40 right-1/3 h-80 w-[500px] rounded-full bg-violet-500/10 blur-[120px]" />
               </div>
 
               {/* Loading state background */}
               <div className="absolute inset-0 bg-[#0b0b10] z-0" />
               
-              {/* Iframe - No scaling, natural size */}
-              <iframe
-                title="PriXplainer (Hugging Face)"
-                src={HF_SPACE_EMBED_URL}
-                className="relative z-10 w-full border-0"
-                style={{
-                  height: "900px",
-                  minHeight: "800px",
-                  background: "#0b0b10",
-                }}
-                loading="lazy"
-                allow="clipboard-read; clipboard-write"
-              />
+              {/* 
+                Iframe wrapper - crops the top ~80px to hide "PrivacyWhisper" title
+                We use negative margin-top on iframe and overflow-hidden on wrapper
+              */}
+              <div className="relative z-10 overflow-hidden" style={{ height: "850px" }}>
+                <iframe
+                  title="PriXplainer"
+                  src={HF_SPACE_EMBED_URL}
+                  className="w-full border-0"
+                  style={{
+                    height: "950px", // Taller than container
+                    marginTop: "-80px", // Shift up to hide the header
+                    background: "#0b0b10",
+                  }}
+                  loading="lazy"
+                  allow="clipboard-read; clipboard-write"
+                />
+              </div>
 
               {/* Bottom info bar */}
-              <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-2 border-t border-border/40 bg-background/80 backdrop-blur-sm px-4 py-3">
+              <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-2 border-t border-border/30 bg-background/60 backdrop-blur-sm px-4 py-3">
                 <p className="text-xs text-muted-foreground">
-                  💡 If loading is slow, Hugging Face may be warming up the Space (queue-based inference).
+                  💡 If loading is slow, the model may be warming up (queue-based inference).
                 </p>
                 <p className="text-xs text-muted-foreground">
                   For best experience, use <a href={HF_SPACE_BASE} target="_blank" rel="noreferrer" className="text-primary hover:underline">Fullscreen mode</a>
@@ -266,13 +271,13 @@ export default function PriXplainer() {
       {/* Extension CTA */}
       <AnimatedSection className="py-16">
         <div className="section-container">
-          <GlowCard className="max-w-3xl mx-auto p-8 text-center bg-gradient-to-br from-primary/10 to-accent/10">
+          <GlowCard className="max-w-3xl mx-auto p-8 text-center">
             <motion.div
-              className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center mb-6"
+              className="w-16 h-16 mx-auto rounded-2xl bg-primary/20 flex items-center justify-center mb-6"
               animate={{ rotate: [0, 5, -5, 0] }}
               transition={{ duration: 4, repeat: Infinity }}
             >
-              <Zap className="h-8 w-8 text-white" />
+              <Zap className="h-8 w-8 text-primary" />
             </motion.div>
 
             <h3 className="text-2xl font-bold text-foreground">Want this inside your browser?</h3>
