@@ -1,7 +1,6 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from "react";
 import { User, Session, Provider } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { getGeoData, getDeviceInfo } from "@/utils/geoUtils";
 
 interface AuthContextType {
   user: User | null;
@@ -24,9 +23,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Check if email is verified
   const isEmailVerified = user?.email_confirmed_at !== null && user?.email_confirmed_at !== undefined;
 
   useEffect(() => {
+    // Set up auth state listener BEFORE checking session
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setSession(session);
@@ -35,12 +36,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         // Track login events
         if (event === 'SIGNED_IN' && session?.user) {
+          // Use setTimeout to avoid blocking the auth flow
           setTimeout(async () => {
             try {
-              // Get geo data (IP + location)
-              const geoData = await getGeoData();
-              const deviceInfo = getDeviceInfo();
-              
               // Determine signup method
               const isGoogleUser = session.user.app_metadata?.provider === 'google';
               const signupMethod = isGoogleUser ? 'google' : 'email';
@@ -50,31 +48,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               const now = Date.now();
               const isNewUser = (now - createdAt) < 60000;
 
-              // For NEW users: Update profile with signup geo data
+              // Track signup for new users
               if (isNewUser) {
-                // Update profiles table with signup info
-                await supabase.from('profiles').update({
-                  signup_method: signupMethod,
-                  signup_ip: geoData.ip,
-                  signup_country: geoData.country,
-                  signup_region: geoData.region,
-                  signup_city: geoData.city,
-                  full_name: session.user.user_metadata?.full_name || null,
-                }).eq('user_id', session.user.id);
-
-                // Track signup activity
                 await supabase.from('user_activity').insert({
                   user_id: session.user.id,
                   activity_type: 'signup',
                   activity_data: {
                     signup_method: signupMethod,
                     email: session.user.email,
-                    full_name: session.user.user_metadata?.full_name || null,
-                    ...deviceInfo,
                   },
                   page_url: window.location.href,
                   user_agent: navigator.userAgent,
-                  ip_address: geoData.ip,
                 });
               }
 
@@ -82,62 +66,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               await supabase.from('login_events').insert({
                 user_id: session.user.id,
                 email: session.user.email,
-                ip: geoData.ip,
                 user_agent: navigator.userAgent,
-                geo: {
-                  country: geoData.country,
-                  region: geoData.region,
-                  city: geoData.city,
-                  timezone: geoData.timezone,
-                },
               });
               
-              // Update profiles with last login info
+              // Update last_login_at in profiles
               await supabase.from('profiles').update({
                 last_login_at: new Date().toISOString(),
-                last_login_ip: geoData.ip,
-                last_login_country: geoData.country,
-                last_login_region: geoData.region,
-                last_login_city: geoData.city,
               }).eq('user_id', session.user.id);
 
-              // Update user_profiles with last login info
+              // Update last_login_at in user_profiles
               await supabase.from('user_profiles').update({
                 last_login_at: new Date().toISOString(),
-                geo_country: geoData.country,
-                geo_region: geoData.region,
-                geo_city: geoData.city,
-                geo_timezone: geoData.timezone,
+                login_count: supabase.rpc ? undefined : undefined, // Will increment separately if needed
               }).eq('user_id', session.user.id);
 
-              // Track login in user_activity
+              // Track login activity
               await supabase.from('user_activity').insert({
                 user_id: session.user.id,
                 activity_type: 'login',
                 activity_data: {
                   login_method: signupMethod,
-                  country: geoData.country,
-                  city: geoData.city,
-                  timezone: geoData.timezone,
-                  ...deviceInfo,
                 },
                 user_agent: navigator.userAgent,
                 page_url: window.location.href,
-                ip_address: geoData.ip,
               });
-
             } catch (error) {
               console.error('Error tracking login:', error);
             }
           }, 0);
         }
 
+        // Handle password recovery event
         if (event === 'PASSWORD_RECOVERY') {
           console.log('Password recovery mode activated');
         }
       }
     );
 
+    // Then check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -149,9 +115,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (email: string, password: string, fullName?: string) => {
     try {
-      // Get geo data before signup
-      const geoData = await getGeoData();
-      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -160,30 +123,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           data: {
             full_name: fullName || '',
             signup_method: 'email',
-            signup_ip: geoData.ip,
-            signup_country: geoData.country,
-            signup_city: geoData.city,
           }
         }
       });
       
-      // Update profile immediately after signup with geo data
+      // Track signup event immediately (profile creation handled by trigger)
       if (data?.user && !error) {
         setTimeout(async () => {
           try {
-            // Update profiles table
-            await supabase.from('profiles').upsert({
-              user_id: data.user!.id,
-              email: email,
-              full_name: fullName || null,
-              signup_method: 'email',
-              signup_ip: geoData.ip,
-              signup_country: geoData.country,
-              signup_region: geoData.region,
-              signup_city: geoData.city,
-            }, { onConflict: 'user_id' });
-
-            // Track signup in user_activity
             await supabase.from('user_activity').insert({
               user_id: data.user!.id,
               activity_type: 'signup',
@@ -191,13 +138,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 signup_method: 'email',
                 email: email,
                 full_name: fullName,
-                country: geoData.country,
-                city: geoData.city,
-                timezone: geoData.timezone,
               },
               page_url: window.location.href,
               user_agent: navigator.userAgent,
-              ip_address: geoData.ip,
             });
           } catch (e) {
             console.error('Error tracking signup:', e);
@@ -242,19 +185,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    // Track logout activity before signing out
     if (user) {
       try {
-        const geoData = await getGeoData();
         await supabase.from('user_activity').insert({
           user_id: user.id,
           activity_type: 'logout',
-          activity_data: {
-            country: geoData.country,
-            city: geoData.city,
-          },
           user_agent: navigator.userAgent,
           page_url: window.location.href,
-          ip_address: geoData.ip,
         });
       } catch (error) {
         console.error('Error tracking logout:', error);
