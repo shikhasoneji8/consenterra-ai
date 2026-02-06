@@ -7,11 +7,6 @@ import AnimatedSection from "@/components/AnimatedSection";
 import GlowCard from "@/components/GlowCard";
 
 const HF_SPACE_BASE = "https://shikhasoneji8-privacywhisper.hf.space";
-
-/**
- * Most Gradio Spaces support __theme=dark.
- * We also add harmless fallbacks for older setups.
- */
 const HF_SPACE_EMBED_URL = `${HF_SPACE_BASE}/?__theme=dark&theme=dark&__dark=1`;
 
 const features = [
@@ -190,141 +185,119 @@ export default function PriXplainer() {
         </div>
       </AnimatedSection>
 
-      {/* Try PriXplainer - FULL WIDTH IFRAME */}
+      {/* Try PriXplainer - CLEAN MINIMAL IFRAME */}
       <section id="try" className="py-14 md:py-20">
-        <div className="w-full px-4 md:px-8 lg:px-12 xl:px-16">
+        <div className="w-full px-4 md:px-6 lg:px-8">
           {/* Header */}
           <div className="max-w-7xl mx-auto mb-6">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
-                    <Shield className="h-5 w-5 text-primary" />
-                  </div>
+                <h2 className="text-2xl md:text-3xl font-bold text-foreground">
                   Try PriXplainer
                 </h2>
-                <p className="mt-2 text-muted-foreground">
+                <p className="mt-1 text-muted-foreground">
                   Analyze any privacy policy instantly. Powered by PrivBERT AI.
                 </p>
               </div>
 
-              <Button asChild variant="outline" size="lg" className="gap-2">
+              <Button asChild variant="outline" className="gap-2 w-fit">
                 <a href={HF_SPACE_BASE} target="_blank" rel="noreferrer">
                   <Maximize2 className="h-4 w-4" />
                   Open Fullscreen
-                  <ExternalLink className="h-3 w-3 ml-1 opacity-50" />
                 </a>
               </Button>
             </div>
           </div>
 
-          {/* Iframe Container - Full Width with Header Cropped */}
-          <div className="max-w-[1600px] mx-auto">
-            <div className="relative rounded-2xl border border-border/40 bg-[#0b0b10] overflow-hidden">
-              {/* Subtle ambient glow - MUCH softer purple */}
-              <div className="pointer-events-none absolute inset-0 opacity-20">
-                <div className="absolute -top-40 left-1/3 h-80 w-[500px] rounded-full bg-primary/20 blur-[120px]" />
-                <div className="absolute -bottom-40 right-1/3 h-80 w-[500px] rounded-full bg-violet-500/10 blur-[120px]" />
-              </div>
-
-              {/* Loading state background */}
-              <div className="absolute inset-0 bg-[#0b0b10] z-0" />
-              
-              {/* 
-                Iframe wrapper - crops the top ~80px to hide "PrivacyWhisper" title
-                We use negative margin-top on iframe and overflow-hidden on wrapper
-              */}
-              <div className="relative z-10 overflow-hidden" style={{ height: "850px" }}>
+          {/* Iframe Container - Clean, no glow effects */}
+          <div className="max-w-7xl mx-auto">
+            <div className="rounded-xl border border-border bg-[#0f0f14] overflow-hidden">
+              {/* Iframe wrapper - crops top to hide "PrivacyWhisper" */}
+              <div className="overflow-hidden" style={{ height: "820px" }}>
                 <iframe
                   title="PriXplainer"
                   src={HF_SPACE_EMBED_URL}
                   className="w-full border-0"
                   style={{
-                    height: "950px", // Taller than container
-                    marginTop: "-80px", // Shift up to hide the header
-                    background: "#0b0b10",
+                    height: "920px",
+                    marginTop: "-85px",
+                    background: "#0f0f14",
                   }}
                   loading="lazy"
                   allow="clipboard-read; clipboard-write"
                 />
               </div>
 
-              {/* Bottom info bar */}
-              <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-2 border-t border-border/30 bg-background/60 backdrop-blur-sm px-4 py-3">
-                <p className="text-xs text-muted-foreground">
-                  💡 If loading is slow, the model may be warming up (queue-based inference).
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  For best experience, use <a href={HF_SPACE_BASE} target="_blank" rel="noreferrer" className="text-primary hover:underline">Fullscreen mode</a>
-                </p>
+              {/* Bottom bar - subtle */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-2 border-t border-border/50 bg-muted/30 px-4 py-2.5 text-xs text-muted-foreground">
+                <span>If loading is slow, the model may be warming up.</span>
+                <a 
+                  href={HF_SPACE_BASE} 
+                  target="_blank" 
+                  rel="noreferrer" 
+                  className="hover:text-foreground transition-colors"
+                >
+                  Open in new tab →
+                </a>
               </div>
             </div>
           </div>
-
-          {/* Disclaimer */}
-          <p className="max-w-7xl mx-auto mt-4 text-xs text-muted-foreground text-center">
-            PriXplainer uses the PrivBERT model for privacy policy analysis. Results are AI-generated and should be verified for critical decisions.
-          </p>
         </div>
       </section>
 
       {/* Extension CTA */}
       <AnimatedSection className="py-16">
         <div className="section-container">
-          <GlowCard className="max-w-3xl mx-auto p-8 text-center">
-            <motion.div
-              className="w-16 h-16 mx-auto rounded-2xl bg-primary/20 flex items-center justify-center mb-6"
-              animate={{ rotate: [0, 5, -5, 0] }}
-              transition={{ duration: 4, repeat: Infinity }}
-            >
-              <Zap className="h-8 w-8 text-primary" />
-            </motion.div>
+          <div className="max-w-3xl mx-auto p-8 text-center rounded-2xl border border-border bg-muted/20">
+            <div className="w-14 h-14 mx-auto rounded-xl bg-primary/10 flex items-center justify-center mb-5">
+              <Zap className="h-7 w-7 text-primary" />
+            </div>
 
             <h3 className="text-2xl font-bold text-foreground">Want this inside your browser?</h3>
-            <p className="mt-3 text-muted-foreground text-lg">
-              We're building PriXplainer as a browser extension so you can get a privacy clarity overlay anywhere you browse.
+            <p className="mt-3 text-muted-foreground">
+              We're building PriXplainer as a browser extension so you can get privacy insights anywhere you browse.
             </p>
 
-            <div className="mt-7 flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild size="lg">
+            <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+              <Button asChild>
                 <Link to="/contact">Join the waitlist</Link>
               </Button>
-              <Button asChild variant="outline" size="lg">
+              <Button asChild variant="outline">
                 <a href={HF_SPACE_BASE} target="_blank" rel="noreferrer">
-                  Try the demo <ArrowRight className="ml-2 h-4 w-4" />
+                  Try the demo
                 </a>
               </Button>
             </div>
 
-            <div className="mt-8 grid gap-4 md:grid-cols-3 text-left">
+            <div className="mt-8 grid gap-4 md:grid-cols-3 text-left text-sm">
               <div className="flex gap-3">
-                <CheckCircle className="h-5 w-5 text-primary mt-0.5" />
+                <CheckCircle className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                 <div>
-                  <div className="font-semibold">Faster trust decisions</div>
-                  <div className="text-sm text-muted-foreground">Know the risks before clicking accept.</div>
+                  <div className="font-medium">Faster decisions</div>
+                  <div className="text-muted-foreground">Know risks before clicking accept.</div>
                 </div>
               </div>
               <div className="flex gap-3">
-                <AlertTriangle className="h-5 w-5 text-primary mt-0.5" />
+                <AlertTriangle className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                 <div>
-                  <div className="font-semibold">Surface red flags</div>
-                  <div className="text-sm text-muted-foreground">Highlight risky clauses in plain language.</div>
+                  <div className="font-medium">Surface red flags</div>
+                  <div className="text-muted-foreground">Highlight risky clauses plainly.</div>
                 </div>
               </div>
               <div className="flex gap-3">
-                <Sparkles className="h-5 w-5 text-primary mt-0.5" />
+                <Sparkles className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                 <div>
-                  <div className="font-semibold">Explainable AI</div>
-                  <div className="text-sm text-muted-foreground">See why the model made its call.</div>
+                  <div className="font-medium">Explainable AI</div>
+                  <div className="text-muted-foreground">See why the model decided.</div>
                 </div>
               </div>
             </div>
-          </GlowCard>
+          </div>
         </div>
       </AnimatedSection>
 
       {/* Footer */}
-      <footer className="border-t border-border/60 py-10">
+      <footer className="border-t border-border py-10">
         <div className="section-container flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="text-sm text-muted-foreground">
             © {new Date().getFullYear()} ConsenTerra. All rights reserved.
