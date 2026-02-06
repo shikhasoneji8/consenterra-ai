@@ -6,30 +6,38 @@ import AuroraBackground from "@/components/AuroraBackground";
 import AnimatedSection from "@/components/AnimatedSection";
 import GlowCard from "@/components/GlowCard";
 
+const HF_SPACE_BASE = "https://shikhasoneji8-privacywhisper.hf.space";
+
+/**
+ * Most Gradio Spaces support __theme=dark.
+ * We also add harmless fallbacks for older setups.
+ */
+const HF_SPACE_EMBED_URL = `${HF_SPACE_BASE}/?__theme=dark&theme=dark&__dark=1`;
+
 const features = [
   {
     icon: Brain,
     title: "PrivBERT AI Model",
     description: "Powered by a specialized transformer model trained on privacy policies.",
-    color: "from-violet-500 to-purple-600"
+    color: "from-violet-500 to-purple-600",
   },
   {
     icon: Eye,
     title: "Risk Detection",
     description: "Visual severity indicators highlight concerning practices instantly.",
-    color: "from-rose-500 to-red-600"
+    color: "from-rose-500 to-red-600",
   },
   {
     icon: Zap,
     title: "Instant Analysis",
     description: "Get results in seconds, not the 18 minutes it takes to read manually.",
-    color: "from-amber-500 to-orange-600"
+    color: "from-amber-500 to-orange-600",
   },
   {
     icon: Sparkles,
     title: "Plain Language",
-    description: "No legal jargon—just clear explanations anyone can understand.",
-    color: "from-emerald-500 to-teal-600"
+    description: "No legal jargon, just clear explanations anyone can understand.",
+    color: "from-emerald-500 to-teal-600",
   },
 ];
 
@@ -127,9 +135,7 @@ export default function PriXplainer() {
           <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {features.map((f) => (
               <GlowCard key={f.title} className="h-full p-6">
-                <div
-                  className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${f.color} flex items-center justify-center`}
-                >
+                <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${f.color} flex items-center justify-center`}>
                   <f.icon className="h-6 w-6 text-white" />
                 </div>
                 <h3 className="mt-4 font-semibold text-lg">{f.title}</h3>
@@ -145,7 +151,9 @@ export default function PriXplainer() {
         <div className="section-container">
           <div className="text-center max-w-2xl mx-auto">
             <h2 className="text-3xl md:text-4xl font-bold">How it works</h2>
-            <p className="mt-4 text-muted-foreground text-lg">Three steps from “wall of text” to “I get it.”</p>
+            <p className="mt-4 text-muted-foreground text-lg">
+              Three steps from “wall of text” to “I get it.”
+            </p>
           </div>
 
           <div className="mt-12 grid gap-6 md:grid-cols-3">
@@ -192,17 +200,13 @@ export default function PriXplainer() {
                 <div>
                   <h2 className="text-2xl md:text-3xl font-bold text-foreground">Try PriXplainer</h2>
                   <p className="mt-1 text-sm md:text-base text-muted-foreground">
-                    Live demo (Hugging Face). Wrapped to match ConsenTerra’s look.
+                    Embedded live from Hugging Face. Dark theme enforced for a clean blend.
                   </p>
                 </div>
 
                 <div className="flex gap-2">
                   <Button asChild variant="outline" className="rounded-full">
-                    <a
-                      href="https://shikhasoneji8-privacywhisper.hf.space"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
+                    <a href={HF_SPACE_BASE} target="_blank" rel="noreferrer">
                       Open Fullscreen <ArrowRight className="ml-2 h-4 w-4" />
                     </a>
                   </Button>
@@ -217,25 +221,20 @@ export default function PriXplainer() {
                   <div className="absolute -bottom-24 left-1/3 h-56 w-[520px] -translate-x-1/2 rounded-full bg-purple-500/10 blur-3xl" />
                 </div>
 
-                {/* Loading shimmer (behind iframe while HF wakes) */}
-                <div className="absolute inset-0 animate-pulse bg-muted/20" />
+                {/* Dark loading surface so you never see a white flash */}
+                <div className="absolute inset-0 bg-[#0b0b10]" />
+                <div className="absolute inset-0 opacity-20 animate-pulse bg-muted/30" />
 
                 {/* Iframe viewport */}
                 <div className="relative h-[760px] md:h-[820px] w-full overflow-hidden rounded-2xl">
-                  {/*
-                    Crop + scale trick:
-                    - Hide overflow in the parent
-                    - Scale the iframe slightly
-                    - Shift it up to remove dead space
-                    Adjust translateY if you want more/less cropping.
-                  */}
                   <iframe
                     title="PriXplainer (Hugging Face)"
-                    src="https://shikhasoneji8-privacywhisper.hf.space"
+                    src={HF_SPACE_EMBED_URL}
                     className="absolute left-0 top-0 h-[120%] w-[120%] origin-top-left"
                     style={{
                       transform: "scale(0.84) translateY(-48px) translateX(0px)",
                       border: "0",
+                      background: "#0b0b10", // helps during initial render
                     }}
                     loading="lazy"
                     allow="clipboard-read; clipboard-write"
@@ -245,13 +244,19 @@ export default function PriXplainer() {
                 {/* Bottom hint bar */}
                 <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-2 border-t border-border/60 bg-background/60 px-4 py-3 backdrop-blur">
                   <div className="text-xs md:text-sm text-muted-foreground">
-                    If it takes time, Hugging Face is likely warming up. The demo runs in a queue.
+                    If it takes time, Hugging Face may be warming up (queue-based).
                   </div>
                   <div className="text-xs md:text-sm text-muted-foreground">
                     Tip: Use <span className="text-foreground font-medium">Open Fullscreen</span> for the best experience.
                   </div>
                 </div>
               </div>
+
+              {/* Small note if Gradio ignores theme */}
+              <p className="mt-3 text-xs text-muted-foreground">
+                If the embedded app still appears light, it means the Space isn’t honoring theme params. In that case,
+                true recoloring requires a small change on the HF side (not in this website repo).
+              </p>
             </GlowCard>
           </div>
         </div>
@@ -268,6 +273,7 @@ export default function PriXplainer() {
             >
               <Zap className="h-8 w-8 text-white" />
             </motion.div>
+
             <h3 className="text-2xl font-bold text-foreground">Want this inside your browser?</h3>
             <p className="mt-3 text-muted-foreground text-lg">
               We’re building PriXplainer as a browser extension so you can get a privacy clarity overlay anywhere you browse.
@@ -278,7 +284,7 @@ export default function PriXplainer() {
                 <Link to="/contact">Join the waitlist</Link>
               </Button>
               <Button asChild variant="outline" size="lg">
-                <a href="https://shikhasoneji8-privacywhisper.hf.space" target="_blank" rel="noreferrer">
+                <a href={HF_SPACE_BASE} target="_blank" rel="noreferrer">
                   Try the demo <ArrowRight className="ml-2 h-4 w-4" />
                 </a>
               </Button>
