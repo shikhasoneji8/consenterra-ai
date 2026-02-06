@@ -193,8 +193,10 @@ export default function PriXplainer() {
       {/* Try PriXplainer */}
       <section id="try" className="py-14 md:py-20">
         <div className="section-container">
-          <div className="max-w-6xl mx-auto">
-            <GlowCard className="p-5 md:p-7">
+          {/* <div className="max-w-6xl mx-auto"> */}
+          <div className="w-full">
+            {/* <GlowCard className="p-5 md:p-7"> */}
+            <GlowCard className="p-4 md:p-6 w-full">
               {/* Header */}
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-5">
                 <div>
@@ -226,7 +228,7 @@ export default function PriXplainer() {
                 <div className="absolute inset-0 opacity-20 animate-pulse bg-muted/30" />
 
                 {/* Iframe viewport */}
-                <div className="relative h-[760px] md:h-[820px] w-full overflow-hidden rounded-2xl">
+                {/* <div className="relative h-[760px] md:h-[820px] w-full overflow-hidden rounded-2xl">
                   <iframe
                     title="PriXplainer (Hugging Face)"
                     src={HF_SPACE_EMBED_URL}
@@ -235,6 +237,20 @@ export default function PriXplainer() {
                       transform: "scale(0.84) translateY(-48px) translateX(0px)",
                       border: "0",
                       background: "#0b0b10", // helps during initial render
+                    }}
+                    loading="lazy"
+                    allow="clipboard-read; clipboard-write"
+                  />
+                </div> */}
+                <div className="relative h-[860px] md:h-[920px] w-full overflow-hidden rounded-2xl">
+                  <iframe
+                    title="PriXplainer (Hugging Face)"
+                    src={HF_SPACE_EMBED_URL} // or your string
+                    className="absolute left-0 top-0 h-[112%] w-[112%] origin-top-left"
+                    style={{
+                      transform: "scale(0.93) translateY(-18px) translateX(-8px)",
+                      border: "0",
+                      background: "#0b0b10",
                     }}
                     loading="lazy"
                     allow="clipboard-read; clipboard-write"
@@ -264,7 +280,8 @@ export default function PriXplainer() {
 
       {/* Extension CTA */}
       <AnimatedSection className="py-16">
-        <div className="section-container">
+        {/* <div className="section-container"> */}
+        <div className="w-full px-3 md:px-6 lg:px-10">
           <GlowCard className="max-w-3xl mx-auto p-8 text-center bg-gradient-to-br from-primary/10 to-accent/10">
             <motion.div
               className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center mb-6"
