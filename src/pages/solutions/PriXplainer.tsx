@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shield, CheckCircle, AlertTriangle, ArrowRight, Sparkles, Zap, Brain, Eye } from "lucide-react";
+import { Shield, CheckCircle, AlertTriangle, ArrowRight, Sparkles, Zap, Brain, Eye, Maximize2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AuroraBackground from "@/components/AuroraBackground";
 import AnimatedSection from "@/components/AnimatedSection";
@@ -44,7 +44,7 @@ const features = [
 const useCases = [
   {
     title: "Everyday Users",
-    description: "Know what you're agreeing to before you hit “Accept.”",
+    description: "Know what you're agreeing to before you hit 'Accept.'",
     icon: Sparkles,
   },
   {
@@ -74,9 +74,9 @@ const howItWorks = [
   },
   {
     step: "03",
-    title: "Explore why it’s risky",
+    title: "Explore why it's risky",
     description:
-      "Dive into explainability to understand what drove the model’s decisions and what it means for you.",
+      "Dive into explainability to understand what drove the model's decisions and what it means for you.",
   },
 ];
 
@@ -102,7 +102,7 @@ export default function PriXplainer() {
               </h1>
 
               <p className="mt-6 text-lg md:text-xl text-muted-foreground leading-relaxed">
-                Upload or paste any privacy policy and instantly see what it collects, what it shares, and what’s risky,
+                Upload or paste any privacy policy and instantly see what it collects, what it shares, and what's risky,
                 with sentence-level explanations powered by PrivBERT.
               </p>
 
@@ -152,7 +152,7 @@ export default function PriXplainer() {
           <div className="text-center max-w-2xl mx-auto">
             <h2 className="text-3xl md:text-4xl font-bold">How it works</h2>
             <p className="mt-4 text-muted-foreground text-lg">
-              Three steps from “wall of text” to “I get it.”
+              Three steps from "wall of text" to "I get it."
             </p>
           </div>
 
@@ -172,9 +172,9 @@ export default function PriXplainer() {
       <AnimatedSection className="py-16">
         <div className="section-container">
           <div className="text-center max-w-2xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold">Who it’s for</h2>
+            <h2 className="text-3xl md:text-4xl font-bold">Who it's for</h2>
             <p className="mt-4 text-muted-foreground text-lg">
-              If you’ve ever wondered “what did I just agree to?”, this is for you.
+              If you've ever wondered "what did I just agree to?", this is for you.
             </p>
           </div>
 
@@ -190,98 +190,82 @@ export default function PriXplainer() {
         </div>
       </AnimatedSection>
 
-      {/* Try PriXplainer */}
-      <section id="try" className="py-14 md:py-20">
-        <div className="section-container">
-          {/* <div className="max-w-6xl mx-auto"> */}
-          <div className="w-full">
-            {/* <GlowCard className="p-5 md:p-7"> */}
-            <GlowCard className="p-4 md:p-6 w-full">
-              {/* Header */}
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-5">
-                <div>
-                  <h2 className="text-2xl md:text-3xl font-bold text-foreground">Try PriXplainer</h2>
-                  <p className="mt-1 text-sm md:text-base text-muted-foreground">
-                    Embedded live from Hugging Face. Dark theme enforced for a clean blend.
-                  </p>
-                </div>
-
-                <div className="flex gap-2">
-                  <Button asChild variant="outline" className="rounded-full">
-                    <a href={HF_SPACE_BASE} target="_blank" rel="noreferrer">
-                      Open Fullscreen <ArrowRight className="ml-2 h-4 w-4" />
-                    </a>
-                  </Button>
-                </div>
+      {/* Try PriXplainer - FULL WIDTH IFRAME */}
+      <section id="try" className="py-14 md:py-20 bg-gradient-to-b from-background via-primary/5 to-background">
+        <div className="w-full px-4 md:px-8 lg:px-12 xl:px-16">
+          {/* Header */}
+          <div className="max-w-7xl mx-auto mb-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <h2 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+                    <Shield className="h-5 w-5 text-white" />
+                  </div>
+                  Try PriXplainer
+                </h2>
+                <p className="mt-2 text-muted-foreground">
+                  Analyze any privacy policy instantly. Powered by PrivBERT AI.
+                </p>
               </div>
 
-              {/* Frame */}
-              <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-b from-background/40 via-background to-background shadow-[0_0_0_1px_rgba(255,255,255,0.04)]">
-                {/* Ambient glow */}
-                <div className="pointer-events-none absolute inset-0 opacity-60">
-                  <div className="absolute -top-24 left-1/2 h-56 w-[520px] -translate-x-1/2 rounded-full bg-primary/20 blur-3xl" />
-                  <div className="absolute -bottom-24 left-1/3 h-56 w-[520px] -translate-x-1/2 rounded-full bg-purple-500/10 blur-3xl" />
-                </div>
-
-                {/* Dark loading surface so you never see a white flash */}
-                <div className="absolute inset-0 bg-[#0b0b10]" />
-                <div className="absolute inset-0 opacity-20 animate-pulse bg-muted/30" />
-
-                {/* Iframe viewport */}
-                {/* <div className="relative h-[760px] md:h-[820px] w-full overflow-hidden rounded-2xl">
-                  <iframe
-                    title="PriXplainer (Hugging Face)"
-                    src={HF_SPACE_EMBED_URL}
-                    className="absolute left-0 top-0 h-[120%] w-[120%] origin-top-left"
-                    style={{
-                      transform: "scale(0.84) translateY(-48px) translateX(0px)",
-                      border: "0",
-                      background: "#0b0b10", // helps during initial render
-                    }}
-                    loading="lazy"
-                    allow="clipboard-read; clipboard-write"
-                  />
-                </div> */}
-                <div className="relative h-[860px] md:h-[920px] w-full overflow-hidden rounded-2xl">
-                  <iframe
-                    title="PriXplainer (Hugging Face)"
-                    src={HF_SPACE_EMBED_URL} // or your string
-                    className="absolute left-0 top-0 h-[112%] w-[112%] origin-top-left"
-                    style={{
-                      transform: "scale(0.93) translateY(-18px) translateX(-8px)",
-                      border: "0",
-                      background: "#0b0b10",
-                    }}
-                    loading="lazy"
-                    allow="clipboard-read; clipboard-write"
-                  />
-                </div>
-
-                {/* Bottom hint bar */}
-                <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-2 border-t border-border/60 bg-background/60 px-4 py-3 backdrop-blur">
-                  <div className="text-xs md:text-sm text-muted-foreground">
-                    If it takes time, Hugging Face may be warming up (queue-based).
-                  </div>
-                  <div className="text-xs md:text-sm text-muted-foreground">
-                    Tip: Use <span className="text-foreground font-medium">Open Fullscreen</span> for the best experience.
-                  </div>
-                </div>
-              </div>
-
-              {/* Small note if Gradio ignores theme */}
-              <p className="mt-3 text-xs text-muted-foreground">
-                If the embedded app still appears light, it means the Space isn’t honoring theme params. In that case,
-                true recoloring requires a small change on the HF side (not in this website repo).
-              </p>
-            </GlowCard>
+              <Button asChild variant="outline" size="lg" className="gap-2">
+                <a href={HF_SPACE_BASE} target="_blank" rel="noreferrer">
+                  <Maximize2 className="h-4 w-4" />
+                  Open Fullscreen
+                  <ExternalLink className="h-3 w-3 ml-1 opacity-50" />
+                </a>
+              </Button>
+            </div>
           </div>
+
+          {/* Iframe Container - Full Width */}
+          <div className="max-w-[1600px] mx-auto">
+            <div className="relative rounded-2xl border border-border/60 bg-[#0b0b10] shadow-2xl shadow-primary/10 overflow-hidden">
+              {/* Ambient glow effects */}
+              <div className="pointer-events-none absolute inset-0 opacity-40">
+                <div className="absolute -top-32 left-1/4 h-64 w-[600px] rounded-full bg-primary/30 blur-[100px]" />
+                <div className="absolute -bottom-32 right-1/4 h-64 w-[600px] rounded-full bg-purple-500/20 blur-[100px]" />
+              </div>
+
+              {/* Loading state background */}
+              <div className="absolute inset-0 bg-[#0b0b10] z-0" />
+              
+              {/* Iframe - No scaling, natural size */}
+              <iframe
+                title="PriXplainer (Hugging Face)"
+                src={HF_SPACE_EMBED_URL}
+                className="relative z-10 w-full border-0"
+                style={{
+                  height: "900px",
+                  minHeight: "800px",
+                  background: "#0b0b10",
+                }}
+                loading="lazy"
+                allow="clipboard-read; clipboard-write"
+              />
+
+              {/* Bottom info bar */}
+              <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-2 border-t border-border/40 bg-background/80 backdrop-blur-sm px-4 py-3">
+                <p className="text-xs text-muted-foreground">
+                  💡 If loading is slow, Hugging Face may be warming up the Space (queue-based inference).
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  For best experience, use <a href={HF_SPACE_BASE} target="_blank" rel="noreferrer" className="text-primary hover:underline">Fullscreen mode</a>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Disclaimer */}
+          <p className="max-w-7xl mx-auto mt-4 text-xs text-muted-foreground text-center">
+            PriXplainer uses the PrivBERT model for privacy policy analysis. Results are AI-generated and should be verified for critical decisions.
+          </p>
         </div>
       </section>
 
       {/* Extension CTA */}
       <AnimatedSection className="py-16">
-        {/* <div className="section-container"> */}
-        <div className="w-full px-3 md:px-6 lg:px-10">
+        <div className="section-container">
           <GlowCard className="max-w-3xl mx-auto p-8 text-center bg-gradient-to-br from-primary/10 to-accent/10">
             <motion.div
               className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center mb-6"
@@ -293,7 +277,7 @@ export default function PriXplainer() {
 
             <h3 className="text-2xl font-bold text-foreground">Want this inside your browser?</h3>
             <p className="mt-3 text-muted-foreground text-lg">
-              We’re building PriXplainer as a browser extension so you can get a privacy clarity overlay anywhere you browse.
+              We're building PriXplainer as a browser extension so you can get a privacy clarity overlay anywhere you browse.
             </p>
 
             <div className="mt-7 flex flex-col sm:flex-row gap-4 justify-center">
