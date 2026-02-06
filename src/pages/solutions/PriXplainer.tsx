@@ -44,7 +44,7 @@ const features = [
 const useCases = [
   {
     title: "Everyday Users",
-    description: "Know what you're agreeing to before you hit "Accept."",
+    description: "Know what you're agreeing to before you hit 'Accept.'",
     icon: Sparkles,
   },
   {
