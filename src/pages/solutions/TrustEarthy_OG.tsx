@@ -615,11 +615,6 @@ export default function TrustEarthy() {
       {/* Closet Shelves */}
       <section className="pb-16">
         <div className="max-w-5xl mx-auto px-4">
-          {/* Instruction text ABOVE the doors */}
-          <p className="text-center text-sm text-muted-foreground mb-6">
-            Click a door to open it, then click the revealed item to see the sustainable swap.
-          </p>
-          
           <div className="bg-wood-dark/20 rounded-2xl p-6 sm:p-8 border border-wood/30">
             {rows.map((row, rowIndex) => (
               <div key={rowIndex} className="mb-2 last:mb-0">
@@ -666,6 +661,10 @@ export default function TrustEarthy() {
               </div>
             ))}
           </div>
+          
+          <p className="text-center text-sm text-muted-foreground mt-6">
+            Click a door to open it, then click the revealed item to see the sustainable swap.
+          </p>
         </div>
       </section>
 

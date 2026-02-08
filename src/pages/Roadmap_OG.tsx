@@ -6,12 +6,13 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 const roadmapItems = {
-  shipped: [],
+  shipped: [
+    { title: "Guest Usage Limits", description: "2 free scans for non-authenticated users", date: "Jan 2026" },
+    { title: "Browser Extension Preview", description: "Chrome extension for real-time policy analysis", date: "Jan 2026" },
+    { title: "Subscription Tiers", description: "Free, Pro, and Enterprise plans launched", date: "Dec 2025" },
+    { title: "Scan History", description: "View and export past scan results", date: "Dec 2025" },
+  ],
   inProgress: [
-    { title: "Guest Usage Limits", description: "2 free scans for non-authenticated users", date: "Q1 2026" },
-    { title: "Browser Extension Preview", description: "Chrome extension for real-time policy analysis", date: "Q1 2026" },
-    { title: "Subscription Tiers", description: "Free, Pro, and Enterprise plans launched", date: "Q1 2026" },
-    { title: "Scan History", description: "View and export past scan results", date: "Q1 2026" },
     { title: "Persona-based Analysis", description: "View results as different user types", date: "Q1 2026" },
     { title: "Multi-language Support", description: "Analyze policies in 10+ languages", date: "Q1 2026" },
     { title: "API Access", description: "REST API for enterprise integrations", date: "Q1 2026" },
@@ -109,7 +110,13 @@ export default function Roadmap() {
       {/* Roadmap Grid */}
       <AnimatedSection className="py-16">
         <div className="section-container">
-          <div className="grid md:grid-cols-2 gap-6 lg:gap-8 max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
+            <StatusCard 
+              title="Recently Shipped" 
+              icon={CheckCircle2} 
+              items={roadmapItems.shipped}
+              color="text-green-400"
+            />
             <StatusCard 
               title="In Progress" 
               icon={Wrench} 

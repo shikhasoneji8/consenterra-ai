@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { ChevronLeft, ChevronRight, Lightbulb } from "lucide-react";
+import { ChevronLeft, ChevronRight, Lightbulb, Play, Pause } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -250,7 +250,7 @@ export default function DemoCarousel({
 
             {/* Bottom controls */}
             <div 
-              className="px-8 py-5 flex items-center justify-center"
+              className="px-8 py-5 flex items-center justify-between"
               style={{
                 borderTop: '1px solid hsl(160 30% 18% / 0.5)',
                 background: 'hsl(160 25% 6% / 0.5)',
@@ -280,6 +280,30 @@ export default function DemoCarousel({
                   />
                 ))}
               </div>
+
+              {/* Play/Pause */}
+              <button
+                onClick={() => setIsAutoPlaying(!isAutoPlaying)}
+                aria-label={isAutoPlaying ? "Pause autoplay" : "Resume autoplay"}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 hover:scale-105"
+                style={{
+                  background: 'hsl(160 25% 15% / 0.6)',
+                  color: 'hsl(160 30% 70%)',
+                  border: '1px solid hsl(160 30% 25% / 0.4)',
+                }}
+              >
+                {isAutoPlaying ? (
+                  <>
+                    <Pause className="w-4 h-4" />
+                    <span className="text-sm">Pause</span>
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-4 h-4" />
+                    <span className="text-sm">Play</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
 

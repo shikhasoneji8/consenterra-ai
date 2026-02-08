@@ -36,7 +36,7 @@ const team = [
   },
   {
     name: "Sameer Neve, Ph.D.",
-    role: "Secretary & Co-Founder",
+    role: "Secretary & Chief Sustainability Officer",
     linkedin: "https://www.linkedin.com/in/nevesameer/",
     bio: "Innovative Environmental Engineer & Sustainability Strategist with a Ph.D. and 7+ years of experience bridging engineering, climate resilience, and policy.",
     photo: SameerPhoto,
@@ -101,7 +101,7 @@ export default function About() {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.3 }}
-                onClick={(e) => { e.stopPropagation(); setActiveCircle(activeCircle === 'what' ? null : 'what'); }}
+                onClick={() => setActiveCircle(activeCircle === 'what' ? null : 'what')}
                 whileHover={{ borderColor: 'hsl(var(--primary) / 0.5)' }}
                 style={{
                   background: 'radial-gradient(circle at center, transparent 60%, hsl(var(--muted) / 0.2) 100%)',
@@ -122,7 +122,7 @@ export default function About() {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.2 }}
-                onClick={(e) => { e.stopPropagation(); setActiveCircle(activeCircle === 'how' ? null : 'how'); }}
+                onClick={() => setActiveCircle(activeCircle === 'how' ? null : 'how')}
                 whileHover={{ borderColor: 'hsl(var(--primary) / 0.7)' }}
                 animate={{
                   boxShadow: activeCircle === 'how' 
@@ -145,7 +145,7 @@ export default function About() {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.1 }}
-                onClick={(e) => { e.stopPropagation(); setActiveCircle(activeCircle === 'why' ? null : 'why'); }}
+                onClick={() => setActiveCircle(activeCircle === 'why' ? null : 'why')}
                 whileHover={{ scale: 1.05 }}
                 animate={{
                   boxShadow: [
