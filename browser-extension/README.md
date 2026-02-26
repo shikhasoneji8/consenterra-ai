@@ -103,4 +103,4 @@ To publish this extension:
 
 ## Support
 
-For issues or questions, visit [ConsenTerra](https://consenterra.lovable.app/contact)
+For issues or questions, visit [ConsenTerra](https://consenterra.com/contact)

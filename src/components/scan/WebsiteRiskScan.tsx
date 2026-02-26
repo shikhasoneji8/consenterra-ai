@@ -22,7 +22,6 @@ const isDevBypass = (): boolean => {
   const hostname = window.location.hostname;
   const isDevEnvironment = hostname === 'localhost' || 
                            hostname.includes('127.0.0.1') || 
-                           hostname.includes('.lovable.app') ||
                            hostname.includes('preview');
   const hasDevParam = new URLSearchParams(window.location.search).get('dev') === '1';
   return isDevEnvironment && hasDevParam;

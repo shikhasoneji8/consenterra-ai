@@ -86,9 +86,11 @@ serve(async (req) => {
     let domain = url.trim().toLowerCase();
     domain = domain.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0];
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    // TODO: Configure AI_GATEWAY_KEY in Supabase Edge Function secrets
+    // This key authenticates requests to the AI inference gateway
+    const AI_GATEWAY_KEY = Deno.env.get("AI_GATEWAY_KEY") || Deno.env.get("LOVABLE_API_KEY") || "";
+    if (!AI_GATEWAY_KEY) {
+      console.warn("AI_GATEWAY_KEY is not configured — scan may fail");
     }
 
     // Persona-specific language adjustments
@@ -167,10 +169,11 @@ Consider:
 
 Return only the JSON object, no markdown or explanation.`;
 
+    // AI inference gateway (multi-model proxy)
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${AI_GATEWAY_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
